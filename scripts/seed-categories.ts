@@ -19,7 +19,8 @@ const defaults = [
 async function main() {
   const uri = process.env.MONGODB_URI;
   if (!uri) throw new Error("MONGODB_URI required");
-  await mongoose.connect(uri);
+  const dbName = process.env.MONGODB_DB ?? "thenews";
+  await mongoose.connect(uri, { dbName });
   for (const cat of defaults) {
     await Category.updateOne({ slug: cat.slug }, { $setOnInsert: cat }, { upsert: true });
   }

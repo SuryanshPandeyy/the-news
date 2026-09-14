@@ -1,6 +1,11 @@
 import mongoose from "mongoose";
 
 const MONGODB_URI = process.env.MONGODB_URI;
+const MONGODB_DB = process.env.MONGODB_DB ?? "thenews";
+
+export function getMongoDbName(): string {
+  return MONGODB_DB;
+}
 
 interface MongooseCache {
   conn: typeof mongoose | null;
@@ -32,6 +37,7 @@ export async function connectDB(): Promise<typeof mongoose> {
   if (!cached.promise) {
     cached.promise = mongoose.connect(MONGODB_URI, {
       bufferCommands: false,
+      dbName: MONGODB_DB,
     });
   }
 
