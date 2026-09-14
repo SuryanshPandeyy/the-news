@@ -10,7 +10,7 @@ export default async function PublicLayout({
   const { settings, categories } = await getSiteShell();
 
   return (
-    <div className="flex min-h-full flex-col bg-[#F8FAFC] dark:bg-background">
+    <div className="flex min-h-full flex-col bg-white font-sans text-gray-900 antialiased selection:bg-blue-200 selection:text-black">
       <SiteHeader siteName={settings.siteName} categories={categories} />
       {!categories.length && (
         <div className="border-b bg-amber-50 px-4 py-2 text-center text-sm text-amber-900">
@@ -23,7 +23,6 @@ export default async function PublicLayout({
           siteName: settings.siteName,
           siteDescription: settings.siteDescription ?? undefined,
           footerText: "footerText" in settings ? settings.footerText ?? undefined : undefined,
-          contactEmail: "contactEmail" in settings ? settings.contactEmail ?? undefined : undefined,
         }}
         categories={categories}
       />

@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { Menu, Search } from "lucide-react";
+import { Bell, Menu, MoreHorizontal, Search, User } from "lucide-react";
 import { useState } from "react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { SiteNavSidebar } from "@/components/layout/site-nav-sidebar";
+import { formatDateIST } from "@/lib/timezone";
 import type { CategorySummary } from "@/lib/types";
 
 export function SiteHeader({
@@ -13,67 +14,126 @@ export function SiteHeader({
   siteName: string;
   categories: CategorySummary[];
 }) {
-  const [open, setOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const now = new Date();
+  const weekday = formatDateIST(now, { weekday: "long" });
+  const dateLine = formatDateIST(now, {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+
+  const navCategories =
+    categories.length > 0
+      ? categories
+      : [
+          { _id: "w", name: "World", slug: "world" },
+          { _id: "p", name: "Politics", slug: "politics" },
+          { _id: "b", name: "Business", slug: "business" },
+          { _id: "t", name: "Tech", slug: "technology" },
+        ];
 
   return (
-    <header className="sticky top-0 z-50 border-b bg-[#0F172A] text-white shadow-md transition-shadow">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3">
-        <Link href="/" className="font-serif text-xl font-bold tracking-tight">
-          {siteName}
-        </Link>
+    <>
+      <SiteNavSidebar
+        open={sidebarOpen}
+        onOpenChange={setSidebarOpen}
+        categories={categories}
+      />
 
-        <nav className="hidden items-center gap-6 lg:flex">
-          <Link href="/today" className="text-sm font-medium hover:text-[#93C5FD]">
-            Today&apos;s News
-          </Link>
-          {categories.slice(0, 8).map((cat) => (
-            <Link
-              key={cat._id}
-              href={`/category/${cat.slug}`}
-              className="text-sm text-white/80 hover:text-white"
-            >
-              {cat.name}
-            </Link>
-          ))}
-        </nav>
-
-        <div className="flex items-center gap-2">
-          <Link
-            href="/search"
-            aria-label="Search"
-            className="inline-flex size-8 items-center justify-center rounded-lg text-white hover:bg-white/10"
-          >
-            <Search className="h-5 w-5" />
-          </Link>
-
-          <Sheet open={open} onOpenChange={setOpen}>
-            <SheetTrigger
-              className="inline-flex size-8 items-center justify-center rounded-lg text-white hover:bg-white/10 lg:hidden"
+      <header className="sticky top-0 z-40 w-full border-b border-gray-200 bg-white">
+        <div className="flex items-center justify-between px-4 py-3 md:px-6">
+          <div className="flex items-center space-x-4 md:space-x-6">
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(true)}
+              className="rounded p-1 text-gray-800 transition-colors hover:bg-gray-100 hover:text-black"
               aria-label="Open menu"
             >
-              <Menu className="h-5 w-5" />
-            </SheetTrigger>
-            <SheetContent side="right" className="w-[300px]">
-              <SheetHeader>
-                <SheetTitle>Menu</SheetTitle>
-              </SheetHeader>
-              <nav className="mt-6 flex flex-col gap-3">
-                <Link href="/today" onClick={() => setOpen(false)}>Today&apos;s News</Link>
-                <Link href="/search" onClick={() => setOpen(false)}>Search</Link>
-                {categories.map((cat) => (
-                  <Link
-                    key={cat._id}
-                    href={`/category/${cat.slug}`}
-                    onClick={() => setOpen(false)}
-                  >
-                    {cat.name}
-                  </Link>
-                ))}
-              </nav>
-            </SheetContent>
-          </Sheet>
+              <Menu className="h-6 w-6" strokeWidth={1.5} />
+            </button>
+            <div className="hidden h-5 w-px bg-gray-300 md:block" />
+            <Link
+              href="/search"
+              className="rounded p-1 text-gray-800 transition-colors hover:bg-gray-100 hover:text-black"
+              aria-label="Search"
+            >
+              <Search className="h-5 w-5" strokeWidth={1.5} />
+            </Link>
+            <Link
+              href="/today"
+              className="rounded p-1 text-gray-800 transition-colors hover:bg-gray-100 hover:text-black"
+              aria-label="Today&apos;s news"
+            >
+              <Bell className="h-5 w-5" strokeWidth={1.5} />
+            </Link>
+          </div>
+
+          <div className="flex flex-1 justify-center">
+            <Link
+              href="/"
+              className="font-serif text-[28px] font-black leading-none tracking-tight text-black md:text-[32px]"
+            >
+              {siteName}
+            </Link>
+          </div>
+
+          <div className="flex items-center space-x-2 md:space-x-4">
+            <Link
+              href="/admin/login"
+              className="hidden items-center space-x-2 rounded bg-black px-4 py-1.5 text-[13px] font-bold text-white transition-colors hover:bg-gray-800 sm:flex"
+            >
+              <User className="h-4 w-4" />
+              <span>Sign In</span>
+            </Link>
+            <Link
+              href="/#newsletter"
+              className="rounded border border-gray-300 bg-white px-3 py-1.5 text-[13px] font-bold text-black transition-colors hover:bg-gray-50 md:px-4"
+            >
+              Subscribe
+            </Link>
+          </div>
         </div>
-      </div>
-    </header>
+
+        <div className="relative flex items-center overflow-x-auto border-t border-gray-100 px-4 py-2 hide-scrollbar md:px-6">
+          <div className="mr-6 flex shrink-0 flex-col justify-center leading-tight">
+            <span className="text-[11px] font-bold uppercase tracking-wide text-gray-900">
+              {weekday}
+            </span>
+            <span className="text-[11px] text-gray-500">{dateLine}</span>
+          </div>
+
+          <nav className="flex min-w-max flex-1 items-center space-x-6 md:space-x-8">
+            <Link
+              href="/"
+              className="text-[13px] font-medium text-gray-600 transition-colors hover:text-black"
+            >
+              Home
+            </Link>
+            {navCategories.map((item) => (
+              <Link
+                key={item._id}
+                href={`/category/${item.slug}`}
+                className="whitespace-nowrap text-[13px] font-medium text-gray-600 transition-colors hover:text-black"
+              >
+                {item.name}
+              </Link>
+            ))}
+          </nav>
+
+          <div className="sticky right-0 ml-4 hidden shrink-0 bg-white pl-2 md:block">
+            <button
+              type="button"
+              onClick={() => setSidebarOpen(true)}
+              className="flex items-center justify-center rounded bg-[#111] p-2 text-white transition-colors hover:bg-gray-800"
+              aria-label="More sections"
+            >
+              <MoreHorizontal className="h-[18px] w-[18px]" />
+            </button>
+          </div>
+        </div>
+      </header>
+    </>
   );
 }

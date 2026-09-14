@@ -1,6 +1,9 @@
+import Link from "next/link";
 import { notFound } from "next/navigation";
-import { NewsCard } from "@/components/news/news-card";
-import { NewsGrid } from "@/components/news/news-grid";
+import { ChevronRight } from "lucide-react";
+import { ArticleImage } from "@/components/editorial/article-image";
+import { ArticleDateLabel } from "@/components/editorial/category-meta";
+import { ContinueReading } from "@/components/editorial/continue-reading";
 import { PaginationControls } from "@/components/shared/pagination-controls";
 import { getArticlesPaginated } from "@/lib/queries/articles";
 import { getCategoryBySlug } from "@/lib/queries/categories";
@@ -30,39 +33,127 @@ export default async function CategoryPage({
   const category = await getCategoryBySlug(slug);
   if (!category) notFound();
 
-  const [featured, latest, trending] = await Promise.all([
+  const [featured, latest, picks] = await Promise.all([
     getArticlesPaginated({ page: 1, pageSize: 1, categorySlug: slug, featured: true, status: "published" }),
     getArticlesPaginated({ page, pageSize: 12, categorySlug: slug, status: "published" }),
     getArticlesPaginated({ page: 1, pageSize: 4, categorySlug: slug, trending: true, status: "published" }),
   ]);
 
-  return (
-    <div className="mx-auto max-w-7xl px-4 py-10">
-      <h1 className="font-serif text-3xl font-bold">{category.name}</h1>
-      {category.description && (
-        <p className="mt-2 max-w-2xl text-muted-foreground">{category.description}</p>
-      )}
+  const hero = featured.items[0] ?? latest.items[0];
+  const gridArticles = latest.items.slice(hero ? 1 : 0);
+  const editorPicks = picks.items.length > 0 ? picks.items : latest.items.slice(0, 4);
 
-      {featured.items[0] && (
-        <div className="mt-8">
-          <NewsCard article={featured.items[0]} variant="featured" />
+  return (
+    <div className="mx-auto max-w-[1440px] px-4 py-8 md:px-8 md:py-12">
+      <div className="mb-10 flex items-end justify-between border-b-[3px] border-black pb-4">
+        <h1 className="text-5xl font-black leading-none text-black md:text-6xl">
+          {category.name}
+        </h1>
+        <div className="hidden space-x-4 md:flex">
+          <span className="cursor-pointer text-sm font-bold uppercase text-black">Latest</span>
+          <Link
+            href={`/category/${slug}?page=1`}
+            className="text-sm font-bold uppercase text-gray-500 hover:text-black"
+          >
+            Archive
+          </Link>
+        </div>
+      </div>
+
+      {hero && (
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-12">
+          <div className="lg:col-span-8">
+            <article className="group flex flex-col">
+              <Link
+                href={`/news/${hero.slug}`}
+                className="relative mb-4 aspect-[16/9] w-full overflow-hidden bg-gray-100"
+              >
+                <ArticleImage
+                  src={hero.featuredImage}
+                  alt={hero.title}
+                  seed={hero._id}
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 66vw"
+                  className="transition-transform duration-500 ease-out group-hover:scale-[1.02]"
+                />
+              </Link>
+              <ArticleDateLabel date={hero.publishedAt ?? hero.createdAt} />
+              <Link href={`/news/${hero.slug}`}>
+                <h2 className="mb-4 pr-4 text-[32px] font-bold leading-tight transition-colors group-hover:text-blue-700 md:text-[40px]">
+                  {hero.title}
+                </h2>
+              </Link>
+              {hero.excerpt && (
+                <p className="mb-4 font-serif text-[18px] leading-relaxed text-gray-600">
+                  {hero.excerpt}
+                </p>
+              )}
+              <ContinueReading href={`/news/${hero.slug}`} />
+            </article>
+          </div>
+
+          <div className="border-t border-gray-200 pt-8 lg:col-span-4 lg:border-t-0 lg:border-l lg:pl-8 lg:pt-0">
+            <h3 className="mb-6 flex items-center text-xl font-bold">
+              Editor&apos;s Picks
+              <ChevronRight className="ml-1 h-4 w-4 text-gray-400" />
+            </h3>
+            <div className="flex flex-col space-y-6">
+              {editorPicks.map((item) => (
+                <article
+                  key={item._id}
+                  className="group border-b border-dashed border-gray-200 pb-6 last:border-b-0 last:pb-0"
+                >
+                  <ArticleDateLabel date={item.publishedAt ?? item.createdAt} />
+                  <Link href={`/news/${item.slug}`}>
+                    <h4 className="text-[16px] font-bold leading-tight transition-colors group-hover:text-blue-700">
+                      {item.title}
+                    </h4>
+                  </Link>
+                </article>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
-      <h2 className="mt-12 mb-4 text-xl font-semibold">Latest in {category.name}</h2>
-      <NewsGrid articles={latest.items} />
-      <PaginationControls page={latest.page} totalPages={latest.totalPages} basePath={`/category/${slug}`} />
-
-      {trending.items.length > 0 && (
-        <section className="mt-12">
-          <h2 className="mb-4 text-xl font-semibold">Trending</h2>
-          <div className="grid gap-4 md:grid-cols-2">
-            {trending.items.map((a) => (
-              <NewsCard key={a._id} article={a} variant="horizontal" />
-            ))}
-          </div>
-        </section>
-      )}
+      <div className="mt-16 border-t-2 border-black pt-10">
+        <h3 className="mb-8 text-2xl font-bold">More from {category.name}</h3>
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
+          {gridArticles.map((article) => (
+            <article key={article._id} className="group flex flex-col">
+              <Link
+                href={`/news/${article.slug}`}
+                className="relative mb-3 aspect-video w-full overflow-hidden bg-gray-100"
+              >
+                <ArticleImage
+                  src={article.featuredImage}
+                  alt={article.title}
+                  seed={article._id}
+                  fill
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  className="transition-transform duration-500 ease-out group-hover:scale-[1.05]"
+                />
+              </Link>
+              <ArticleDateLabel date={article.publishedAt ?? article.createdAt} />
+              <Link href={`/news/${article.slug}`}>
+                <h4 className="mb-2 text-[20px] font-bold leading-tight transition-colors group-hover:text-blue-700">
+                  {article.title}
+                </h4>
+              </Link>
+              {article.excerpt && (
+                <p className="line-clamp-3 font-serif text-[14px] leading-relaxed text-gray-600">
+                  {article.excerpt}
+                </p>
+              )}
+            </article>
+          ))}
+        </div>
+        <PaginationControls
+          page={latest.page}
+          totalPages={latest.totalPages}
+          basePath={`/category/${slug}`}
+        />
+      </div>
     </div>
   );
 }

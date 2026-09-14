@@ -186,6 +186,18 @@ export async function getRelatedArticles(
   return docs.map((d) => serializeArticle(d as Record<string, unknown>));
 }
 
+export async function getMostReadArticles(limit = 5): Promise<ArticleListItem[]> {
+  await connectDB();
+  const docs = await Article.find({ status: "published" })
+    .select(listProjection)
+    .populate("category", "name slug description image")
+    .sort({ views: -1, publishedAt: -1 })
+    .limit(limit)
+    .lean();
+
+  return docs.map((d) => serializeArticle(d as Record<string, unknown>));
+}
+
 export async function getAdminStats() {
   await connectDB();
   const { Category } = await import("@/lib/models/Category");

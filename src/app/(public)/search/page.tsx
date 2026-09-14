@@ -1,4 +1,4 @@
-import { NewsGrid } from "@/components/news/news-grid";
+import { HomeLatestColumn } from "@/components/editorial/home-latest-column";
 import { PaginationControls } from "@/components/shared/pagination-controls";
 import { getArticlesPaginated } from "@/lib/queries/articles";
 
@@ -19,7 +19,7 @@ export async function generateMetadata({
 export default async function SearchPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; page?: string; category?: string }>;
+  searchParams: Promise<{ q?: string; page?: string }>;
 }) {
   const params = await searchParams;
   const q = params.q?.trim() ?? "";
@@ -31,49 +31,45 @@ export default async function SearchPage({
         pageSize: 12,
         search: q,
         status: "published",
-        categorySlug: params.category,
       })
     : { items: [], total: 0, page: 1, pageSize: 12, totalPages: 1 };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-10">
-      <h1 className="font-serif text-3xl font-bold">Search</h1>
-      <form className="mt-6 flex gap-2" action="/search" method="get">
+    <div className="mx-auto max-w-[1440px] px-4 py-8 md:px-8 md:py-12">
+      <h1 className="mb-6 text-5xl font-black text-black">Search</h1>
+      <form className="mb-8 flex max-w-xl gap-2" action="/search" method="get">
         <input
           name="q"
           defaultValue={q}
           placeholder="Search headlines, tags..."
-          className="flex-1 rounded-lg border px-3 py-2 text-sm"
+          className="flex-1 rounded border border-gray-300 px-3 py-2 text-sm"
         />
         <button
           type="submit"
-          className="rounded-lg bg-[#2563EB] px-4 py-2 text-sm font-medium text-white"
+          className="rounded bg-black px-4 py-2 text-sm font-bold text-white hover:bg-gray-800"
         >
           Search
         </button>
       </form>
 
       {q && (
-        <p className="mt-4 text-sm text-muted-foreground">
+        <p className="mb-6 text-sm text-gray-500">
           {data.total} result{data.total === 1 ? "" : "s"} for &ldquo;{q}&rdquo;
         </p>
       )}
 
-      <div className="mt-8">
-        {q ? (
-          <NewsGrid articles={data.items} />
-        ) : (
-          <p className="text-muted-foreground">Enter a search term to find articles.</p>
-        )}
-      </div>
-
-      {q && (
-        <PaginationControls
-          page={data.page}
-          totalPages={data.totalPages}
-          basePath="/search"
-          query={{ q, category: params.category }}
-        />
+      {q ? (
+        <div className="max-w-2xl">
+          <HomeLatestColumn articles={data.items} />
+          <PaginationControls
+            page={data.page}
+            totalPages={data.totalPages}
+            basePath="/search"
+            query={{ q }}
+          />
+        </div>
+      ) : (
+        <p className="font-serif text-gray-600">Enter a search term to find articles.</p>
       )}
     </div>
   );

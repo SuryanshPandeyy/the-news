@@ -3,7 +3,6 @@
 import { Check, Copy, MessageCircle, Share2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
 
 export function SocialShare({ url, title }: { url: string; title: string }) {
   const [copied, setCopied] = useState(false);
@@ -43,7 +42,7 @@ export function SocialShare({ url, title }: { url: string; title: string }) {
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-2">
+    <div className="flex flex-wrap items-center gap-3">
       {links.map((link) => (
         <a
           key={link.label}
@@ -51,14 +50,19 @@ export function SocialShare({ url, title }: { url: string; title: string }) {
           target="_blank"
           rel="noopener noreferrer"
           aria-label={`Share on ${link.label}`}
-          className="inline-flex h-7 items-center justify-center rounded-[min(var(--radius-md),12px)] border border-border px-2.5 hover:bg-muted"
+          className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-300 text-gray-600 transition-colors hover:bg-gray-50"
         >
           <link.icon className="h-4 w-4" />
         </a>
       ))}
-      <Button variant="outline" size="sm" onClick={copyLink} aria-label="Copy link">
+      <button
+        type="button"
+        onClick={copyLink}
+        aria-label="Copy link"
+        className="flex h-8 w-8 items-center justify-center rounded-full border border-gray-300 text-gray-600 transition-colors hover:bg-gray-50"
+      >
         {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-      </Button>
+      </button>
     </div>
   );
 }
