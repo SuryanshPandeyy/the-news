@@ -11,12 +11,17 @@ export type ArticleListItem = {
   title: string;
   slug: string;
   excerpt?: string;
+  subtitle?: string;
   featuredImage?: string;
+  featuredImageAlt?: string;
   author?: string;
+  authorRole?: string;
+  sectionLabel?: string;
   status: "draft" | "published";
   featured: boolean;
   breaking: boolean;
   trending: boolean;
+  editorsPick: boolean;
   publishedAt?: string;
   createdAt: string;
   updatedAt: string;
@@ -28,6 +33,7 @@ export type ArticleListItem = {
 export type ArticleDetail = ArticleListItem & {
   content: string;
   featuredImagePublicId?: string;
+  imageCaption?: string;
   seoTitle?: string;
   seoDescription?: string;
   seoKeywords?: string[];

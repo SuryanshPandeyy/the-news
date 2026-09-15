@@ -89,9 +89,9 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           {article.title}
         </h1>
 
-        {article.excerpt && (
+        {(article.subtitle ?? article.excerpt) && (
           <p className="mb-8 max-w-3xl font-serif text-xl leading-snug text-gray-600 md:text-2xl">
-            {article.excerpt}
+            {article.subtitle ?? article.excerpt}
           </p>
         )}
 
@@ -109,7 +109,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
             <div>
               <p className="text-sm font-bold text-gray-900">By {article.author}</p>
               <p className="text-xs text-gray-500">
-                {readingTime} min read · Editorial
+                {article.authorRole ?? `${readingTime} min read · Editorial`}
               </p>
             </div>
           </div>
@@ -127,7 +127,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           sizes="(max-width: 896px) 100vw, 896px"
         />
         <figcaption className="absolute bottom-2 right-2 rounded-sm bg-black/60 px-2 py-1 text-xs text-white backdrop-blur-sm">
-          {article.category.name}
+          {article.imageCaption ?? article.category.name}
         </figcaption>
       </figure>
 

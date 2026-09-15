@@ -86,6 +86,7 @@ export function NewsTable({ articles }: { articles: ArticleListItem[] }) {
               {article.featured && <Badge variant="outline">Featured</Badge>}
               {article.breaking && <Badge className="bg-[#DC2626]">Breaking</Badge>}
               {article.trending && <Badge variant="outline">Trending</Badge>}
+              {article.editorsPick && <Badge variant="outline">Editor&apos;s pick</Badge>}
             </TableCell>
             <TableCell className="text-sm text-muted-foreground">
               {article.publishedAt

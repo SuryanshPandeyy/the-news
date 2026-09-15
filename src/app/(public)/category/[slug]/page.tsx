@@ -5,7 +5,7 @@ import { ArticleImage } from "@/components/editorial/article-image";
 import { ArticleDateLabel } from "@/components/editorial/category-meta";
 import { ContinueReading } from "@/components/editorial/continue-reading";
 import { PaginationControls } from "@/components/shared/pagination-controls";
-import { getArticlesPaginated } from "@/lib/queries/articles";
+import { getArticlesPaginated, getEditorsPickArticles } from "@/lib/queries/articles";
 import { getCategoryBySlug } from "@/lib/queries/categories";
 
 export const dynamic = "force-dynamic";
@@ -33,15 +33,16 @@ export default async function CategoryPage({
   const category = await getCategoryBySlug(slug);
   if (!category) notFound();
 
-  const [featured, latest, picks] = await Promise.all([
+  const [featured, latest, editorPicks] = await Promise.all([
     getArticlesPaginated({ page: 1, pageSize: 1, categorySlug: slug, featured: true, status: "published" }),
     getArticlesPaginated({ page, pageSize: 12, categorySlug: slug, status: "published" }),
-    getArticlesPaginated({ page: 1, pageSize: 4, categorySlug: slug, trending: true, status: "published" }),
+    getEditorsPickArticles(slug, 4),
   ]);
 
   const hero = featured.items[0] ?? latest.items[0];
   const gridArticles = latest.items.slice(hero ? 1 : 0);
-  const editorPicks = picks.items.length > 0 ? picks.items : latest.items.slice(0, 4);
+  const editorPicksList =
+    editorPicks.length > 0 ? editorPicks : latest.items.slice(0, 4);
 
   return (
     <div className="mx-auto max-w-[1440px] px-4 py-8 md:px-8 md:py-12">
@@ -98,7 +99,7 @@ export default async function CategoryPage({
               <ChevronRight className="ml-1 h-4 w-4 text-gray-400" />
             </h3>
             <div className="flex flex-col space-y-6">
-              {editorPicks.map((item) => (
+              {editorPicksList.map((item) => (
                 <article
                   key={item._id}
                   className="group border-b border-dashed border-gray-200 pb-6 last:border-b-0 last:pb-0"

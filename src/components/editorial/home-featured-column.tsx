@@ -40,7 +40,7 @@ export function HomeFeaturedColumn({
       <article className="group flex flex-col">
         <Link href={href} className="relative mb-3 aspect-[4/3] w-full overflow-hidden bg-gray-100">
           <span className="absolute left-0 top-0 z-10 border-b border-r border-gray-200 bg-white px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-black">
-            {article.category.name}
+            {article.sectionLabel || article.category.name}
           </span>
           <ArticleImage
             src={article.featuredImage}

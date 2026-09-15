@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { RichTextEditor } from "@/components/editor/rich-text-editor";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { saveArticle } from "@/lib/actions/articles";
@@ -44,6 +46,21 @@ export function ArticleForm({
   const [seoTitle, setSeoTitle] = useState(article?.seoTitle ?? "");
   const [seoDescription, setSeoDescription] = useState(article?.seoDescription ?? "");
   const [tags, setTags] = useState((article?.tags ?? []).join(", "));
+  const [subtitle, setSubtitle] = useState(article?.subtitle ?? "");
+  const [featuredImageAlt, setFeaturedImageAlt] = useState(
+    article?.featuredImageAlt ?? "",
+  );
+  const [imageCaption, setImageCaption] = useState(article?.imageCaption ?? "");
+  const [sectionLabel, setSectionLabel] = useState(article?.sectionLabel ?? "");
+  const [authorRole, setAuthorRole] = useState(article?.authorRole ?? "");
+  const [editorsPick, setEditorsPick] = useState(article?.editorsPick ?? false);
+  const [views, setViews] = useState(String(article?.views ?? 0));
+  const [publishedAt, setPublishedAt] = useState(
+    article?.publishedAt
+      ? new Date(article.publishedAt).toISOString().slice(0, 16)
+      : "",
+  );
+  const [imageUrl, setImageUrl] = useState(article?.featuredImage ?? "");
 
   function onTitleChange(value: string) {
     setTitle(value);
@@ -62,6 +79,7 @@ export function ArticleForm({
       return;
     }
     setFeaturedImage(data.url);
+    setImageUrl(data.url);
     setFeaturedImagePublicId(data.publicId);
     toast.success("Image uploaded");
   }
@@ -74,15 +92,23 @@ export function ArticleForm({
         title,
         slug,
         excerpt,
+        subtitle,
         content,
         category,
         author,
+        authorRole,
         status,
         featured,
         breaking,
         trending,
-        featuredImage,
+        editorsPick,
+        views: Number(views) || 0,
+        featuredImage: featuredImage || imageUrl,
+        featuredImageAlt,
         featuredImagePublicId,
+        imageCaption,
+        sectionLabel,
+        publishedAt: publishedAt || null,
         seoTitle,
         seoDescription,
         tags: tags
@@ -103,113 +129,241 @@ export function ArticleForm({
   }
 
   return (
-    <form onSubmit={onSubmit} className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="title">Title</Label>
-          <Input id="title" value={title} onChange={(e) => onTitleChange(e.target.value)} required />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="slug">Slug</Label>
-          <Input
-            id="slug"
-            value={slug}
-            onChange={(e) => {
-              setSlugManual(true);
-              setSlug(e.target.value);
-            }}
-            required
-          />
-        </div>
-      </div>
+    <form onSubmit={onSubmit} className="mx-auto max-w-4xl space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Headline</CardTitle>
+          <CardDescription>Title and URL shown on the homepage and article page.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="title">Title</Label>
+              <Input id="title" value={title} onChange={(e) => onTitleChange(e.target.value)} required />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="slug">Slug</Label>
+              <Input
+                id="slug"
+                value={slug}
+                onChange={(e) => {
+                  setSlugManual(true);
+                  setSlug(e.target.value);
+                }}
+                required
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="excerpt">Card excerpt</Label>
+            <Textarea
+              id="excerpt"
+              value={excerpt}
+              onChange={(e) => setExcerpt(e.target.value)}
+              placeholder="Short summary for homepage and category lists"
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="subtitle">Subtitle / dek</Label>
+            <Textarea
+              id="subtitle"
+              value={subtitle}
+              onChange={(e) => setSubtitle(e.target.value)}
+              placeholder="Larger intro line under the headline on the article page"
+            />
+          </div>
+        </CardContent>
+      </Card>
 
-      <div className="space-y-2">
-        <Label htmlFor="excerpt">Excerpt</Label>
-        <Textarea id="excerpt" value={excerpt} onChange={(e) => setExcerpt(e.target.value)} />
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Hero image</CardTitle>
+          <CardDescription>Featured image, badge label, and photo credit.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="imageUrl">Image URL</Label>
+              <Input
+                id="imageUrl"
+                value={imageUrl}
+                onChange={(e) => {
+                  setImageUrl(e.target.value);
+                  setFeaturedImage(e.target.value);
+                }}
+                placeholder="https://images.unsplash.com/..."
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Upload replacement</Label>
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  if (file) void handleUpload(file);
+                }}
+              />
+            </div>
+          </div>
+          {(featuredImage || imageUrl) && (
+            <img
+              src={featuredImage || imageUrl}
+              alt={featuredImageAlt || title}
+              className="max-h-56 w-full rounded-md object-cover"
+            />
+          )}
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="featuredImageAlt">Alt text</Label>
+              <Input
+                id="featuredImageAlt"
+                value={featuredImageAlt}
+                onChange={(e) => setFeaturedImageAlt(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="sectionLabel">Section badge</Label>
+              <Input
+                id="sectionLabel"
+                value={sectionLabel}
+                onChange={(e) => setSectionLabel(e.target.value)}
+                placeholder="e.g. Pursuits (defaults to category)"
+              />
+            </div>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="imageCaption">Image caption / credit</Label>
+            <Input
+              id="imageCaption"
+              value={imageCaption}
+              onChange={(e) => setImageCaption(e.target.value)}
+              placeholder="Image via Getty Images"
+            />
+          </div>
+        </CardContent>
+      </Card>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2">
-          <Label>Category</Label>
-          <select
-            className="w-full rounded-lg border px-3 py-2 text-sm"
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            required
-          >
-            <option value="">Select category</option>
-            {categories.map((c) => (
-              <option key={c._id} value={c._id}>{c.name}</option>
-            ))}
-          </select>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="author">Author</Label>
-          <Input id="author" value={author} onChange={(e) => setAuthor(e.target.value)} />
-        </div>
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Byline</CardTitle>
+        </CardHeader>
+        <CardContent className="grid gap-4 md:grid-cols-2">
+          <div className="space-y-2">
+            <Label>Category</Label>
+            <select
+              className="w-full rounded-lg border px-3 py-2 text-sm"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              required
+            >
+              <option value="">Select category</option>
+              {categories.map((c) => (
+                <option key={c._id} value={c._id}>{c.name}</option>
+              ))}
+            </select>
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="author">Author name</Label>
+            <Input id="author" value={author} onChange={(e) => setAuthor(e.target.value)} />
+          </div>
+          <div className="space-y-2 md:col-span-2">
+            <Label htmlFor="authorRole">Author role</Label>
+            <Input
+              id="authorRole"
+              value={authorRole}
+              onChange={(e) => setAuthorRole(e.target.value)}
+              placeholder="Senior Political Correspondent"
+            />
+          </div>
+        </CardContent>
+      </Card>
 
-      <div className="space-y-2">
-        <Label>Featured image</Label>
-        <Input
-          type="file"
-          accept="image/*"
-          onChange={(e) => {
-            const file = e.target.files?.[0];
-            if (file) void handleUpload(file);
-          }}
-        />
-        {featuredImage && (
-          <img src={featuredImage} alt="" className="mt-2 max-h-48 rounded-md object-cover" />
-        )}
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Story body</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <RichTextEditor value={content} onChange={setContent} />
+        </CardContent>
+      </Card>
 
-      <div className="space-y-2">
-        <Label>Content</Label>
-        <RichTextEditor value={content} onChange={setContent} />
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Placement & publishing</CardTitle>
+          <CardDescription>Control homepage sections and go-live date.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-wrap gap-6">
+            <Toggle label="Featured (hero column)" checked={featured} onChange={setFeatured} />
+            <Toggle label="Trending" checked={trending} onChange={setTrending} />
+            <Toggle label="Breaking" checked={breaking} onChange={setBreaking} />
+            <Toggle label="Editor&apos;s pick" checked={editorsPick} onChange={setEditorsPick} />
+          </div>
+          <Separator />
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="space-y-2">
+              <Label>Status</Label>
+              <select
+                className="w-full rounded-lg border px-3 py-2 text-sm"
+                value={status}
+                onChange={(e) => setStatus(e.target.value as "draft" | "published")}
+              >
+                <option value="draft">Draft</option>
+                <option value="published">Published</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="publishedAt">Published at</Label>
+              <Input
+                id="publishedAt"
+                type="datetime-local"
+                value={publishedAt}
+                onChange={(e) => setPublishedAt(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="views">View count</Label>
+              <Input
+                id="views"
+                type="number"
+                min={0}
+                value={views}
+                onChange={(e) => setViews(e.target.value)}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-      <div className="flex flex-wrap gap-6">
-        <Toggle label="Featured" checked={featured} onChange={setFeatured} />
-        <Toggle label="Breaking" checked={breaking} onChange={setBreaking} />
-        <Toggle label="Trending" checked={trending} onChange={setTrending} />
-      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>SEO & tags</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="space-y-2">
+            <Label htmlFor="tags">Tags (comma separated)</Label>
+            <Input id="tags" value={tags} onChange={(e) => setTags(e.target.value)} />
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="seoTitle">SEO title</Label>
+              <Input id="seoTitle" value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="seoDescription">SEO description</Label>
+              <Textarea
+                id="seoDescription"
+                value={seoDescription}
+                onChange={(e) => setSeoDescription(e.target.value)}
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2">
-          <Label>Status</Label>
-          <select
-            className="w-full rounded-lg border px-3 py-2 text-sm"
-            value={status}
-            onChange={(e) => setStatus(e.target.value as "draft" | "published")}
-          >
-            <option value="draft">Draft</option>
-            <option value="published">Published</option>
-          </select>
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="tags">Tags (comma separated)</Label>
-          <Input id="tags" value={tags} onChange={(e) => setTags(e.target.value)} />
-        </div>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="space-y-2">
-          <Label htmlFor="seoTitle">SEO Title</Label>
-          <Input id="seoTitle" value={seoTitle} onChange={(e) => setSeoTitle(e.target.value)} />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="seoDescription">SEO Description</Label>
-          <Textarea
-            id="seoDescription"
-            value={seoDescription}
-            onChange={(e) => setSeoDescription(e.target.value)}
-          />
-        </div>
-      </div>
-
-      <Button type="submit" disabled={loading}>
-        {loading ? "Saving..." : article ? "Update article" : "Create article"}
+      <Button type="submit" disabled={loading} size="lg">
+        {loading ? "Saving..." : article ? "Update article" : "Publish story"}
       </Button>
     </form>
   );

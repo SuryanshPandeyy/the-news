@@ -21,7 +21,7 @@ export default async function EditNewsPage({ params }: { params: Promise<{ id: s
   if (!article) notFound();
 
   return (
-    <div className="mx-auto max-w-4xl space-y-6">
+    <div className="space-y-6">
       <h1 className="text-2xl font-bold">Edit article</h1>
       <ArticleForm categories={categories} article={article} />
     </div>

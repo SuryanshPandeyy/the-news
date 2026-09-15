@@ -7,12 +7,17 @@ const listProjection = {
   title: 1,
   slug: 1,
   excerpt: 1,
+  subtitle: 1,
   featuredImage: 1,
+  featuredImageAlt: 1,
+  sectionLabel: 1,
   author: 1,
+  authorRole: 1,
   status: 1,
   featured: 1,
   breaking: 1,
   trending: 1,
+  editorsPick: 1,
   publishedAt: 1,
   createdAt: 1,
   updatedAt: 1,
@@ -28,12 +33,17 @@ function serializeArticle(doc: Record<string, unknown>): ArticleListItem {
     title: doc.title as string,
     slug: doc.slug as string,
     excerpt: doc.excerpt as string | undefined,
+    subtitle: doc.subtitle as string | undefined,
     featuredImage: doc.featuredImage as string | undefined,
+    featuredImageAlt: doc.featuredImageAlt as string | undefined,
+    sectionLabel: doc.sectionLabel as string | undefined,
     author: doc.author as string | undefined,
+    authorRole: doc.authorRole as string | undefined,
     status: doc.status as "draft" | "published",
     featured: Boolean(doc.featured),
     breaking: Boolean(doc.breaking),
     trending: Boolean(doc.trending),
+    editorsPick: Boolean(doc.editorsPick),
     publishedAt: doc.publishedAt
       ? new Date(doc.publishedAt as string).toISOString()
       : undefined,
@@ -145,6 +155,7 @@ export async function getArticleBySlug(
     ...base,
     content: doc.content,
     featuredImagePublicId: doc.featuredImagePublicId ?? undefined,
+    imageCaption: doc.imageCaption ?? undefined,
     seoTitle: doc.seoTitle ?? undefined,
     seoDescription: doc.seoDescription ?? undefined,
     seoKeywords: doc.seoKeywords ?? undefined,
@@ -183,6 +194,29 @@ export async function getRelatedArticles(
     .limit(limit)
     .lean();
 
+  return docs.map((d) => serializeArticle(d as Record<string, unknown>));
+}
+
+export async function getEditorsPickArticles(
+  categorySlug?: string,
+  limit = 4,
+): Promise<ArticleListItem[]> {
+  await connectDB();
+  const filter: Record<string, unknown> = {
+    status: "published",
+    editorsPick: true,
+  };
+  if (categorySlug) {
+    const { Category } = await import("@/lib/models/Category");
+    const cat = await Category.findOne({ slug: categorySlug }).select("_id").lean();
+    if (cat) filter.category = cat._id;
+  }
+  const docs = await Article.find(filter)
+    .select(listProjection)
+    .populate("category", "name slug description image")
+    .sort({ publishedAt: -1 })
+    .limit(limit)
+    .lean();
   return docs.map((d) => serializeArticle(d as Record<string, unknown>));
 }
 
