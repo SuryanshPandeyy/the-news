@@ -9,6 +9,10 @@ export default async function AdminSettingsPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Settings</h1>
+      <p className="text-sm text-muted-foreground">
+        Site name is the wordmark in the public header (unless you add a logo URL later). Default
+        SEO fields apply when a story has no custom meta.
+      </p>
       <SettingsForm
         initial={{
           siteName: settings.siteName,

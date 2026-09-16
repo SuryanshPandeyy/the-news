@@ -44,7 +44,7 @@ export function HomeFeaturedColumn({
           </span>
           <ArticleImage
             src={article.featuredImage}
-            alt={article.title}
+            alt={article.featuredImageAlt || article.title}
             seed={article._id}
             fill
             sizes="(max-width: 1024px) 100vw, 33vw"
@@ -76,7 +76,7 @@ export function HomeFeaturedColumn({
               >
                 <ArticleImage
                   src={thumb.featuredImage}
-                  alt={thumb.title}
+                  alt={thumb.featuredImageAlt || thumb.title}
                   seed={`${thumb._id}-${i}`}
                   fill
                   sizes="120px"

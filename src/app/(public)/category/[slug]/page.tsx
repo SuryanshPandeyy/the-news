@@ -71,7 +71,7 @@ export default async function CategoryPage({
               >
                 <ArticleImage
                   src={hero.featuredImage}
-                  alt={hero.title}
+                  alt={hero.featuredImageAlt || hero.title}
                   seed={hero._id}
                   fill
                   sizes="(max-width: 1024px) 100vw, 66vw"
@@ -128,7 +128,7 @@ export default async function CategoryPage({
               >
                 <ArticleImage
                   src={article.featuredImage}
-                  alt={article.title}
+                  alt={article.featuredImageAlt || article.title}
                   seed={article._id}
                   fill
                   sizes="(max-width: 768px) 100vw, 33vw"

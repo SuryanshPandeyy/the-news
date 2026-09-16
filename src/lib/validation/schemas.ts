@@ -13,6 +13,7 @@ export const articleSchema = z.object({
   sectionLabel: z.string().optional(),
   category: z.string().min(1, "Category is required"),
   author: z.string().optional(),
+  authorRole: z.string().optional(),
   status: z.enum(["draft", "published"]),
   featured: z.boolean().optional(),
   breaking: z.boolean().optional(),

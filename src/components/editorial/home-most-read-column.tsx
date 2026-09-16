@@ -52,7 +52,7 @@ export function HomeMostReadColumn({
               >
                 <ArticleImage
                   src={item.featuredImage}
-                  alt={item.title}
+                  alt={item.featuredImageAlt || item.title}
                   seed={item._id}
                   fill
                   sizes="120px"

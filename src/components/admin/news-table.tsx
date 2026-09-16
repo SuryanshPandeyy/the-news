@@ -57,6 +57,7 @@ export function NewsTable({ articles }: { articles: ArticleListItem[] }) {
           <TableHead>Status</TableHead>
           <TableHead>Flags</TableHead>
           <TableHead>Published</TableHead>
+          <TableHead className="text-right">Views</TableHead>
           <TableHead className="text-right">Actions</TableHead>
         </TableRow>
       </TableHeader>
@@ -67,7 +68,12 @@ export function NewsTable({ articles }: { articles: ArticleListItem[] }) {
               <div className="flex items-center gap-3">
                 {article.featuredImage && (
                   <div className="relative h-10 w-14 overflow-hidden rounded">
-                    <Image src={article.featuredImage} alt="" fill className="object-cover" />
+                    <Image
+                      src={article.featuredImage}
+                      alt={article.featuredImageAlt || article.title}
+                      fill
+                      className="object-cover"
+                    />
                   </div>
                 )}
                 <div>
@@ -92,6 +98,9 @@ export function NewsTable({ articles }: { articles: ArticleListItem[] }) {
               {article.publishedAt
                 ? formatDateIST(article.publishedAt, { dateStyle: "medium" })
                 : "—"}
+            </TableCell>
+            <TableCell className="text-right tabular-nums text-muted-foreground">
+              {article.views ?? 0}
             </TableCell>
             <TableCell className="text-right">
               <div className="flex justify-end gap-1">

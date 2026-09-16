@@ -2,12 +2,25 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth-helpers";
+import { articleInputToDb } from "@/lib/articles/map-payload";
 import { connectDB } from "@/lib/db/connect";
 import { Article } from "@/lib/models/Article";
+import { Category } from "@/lib/models/Category";
 import { sanitizeArticleContent } from "@/lib/sanitize";
 import { articleSchema } from "@/lib/validation/schemas";
 
 export type ActionResult = { success: boolean; message?: string; id?: string };
+
+async function revalidatePublicPaths(categoryId: string, slug: string) {
+  revalidatePath("/");
+  revalidatePath("/today");
+  revalidatePath("/search");
+  revalidatePath(`/news/${slug}`);
+  const cat = await Category.findById(categoryId).select("slug").lean();
+  if (cat?.slug) {
+    revalidatePath(`/category/${cat.slug}`);
+  }
+}
 
 export async function saveArticle(
   data: unknown,
@@ -19,33 +32,28 @@ export async function saveArticle(
     await connectDB();
 
     const payload = {
-      ...parsed,
+      ...articleInputToDb(parsed),
       content: sanitizeArticleContent(parsed.content),
-      publishedAt:
-        parsed.status === "published"
-          ? parsed.publishedAt
-            ? new Date(parsed.publishedAt)
-            : new Date()
-          : parsed.publishedAt
-            ? new Date(parsed.publishedAt)
-            : undefined,
     };
 
     if (id) {
+      const existing = await Article.findById(id).select("slug category").lean();
       await Article.findByIdAndUpdate(id, payload);
-      revalidatePath("/");
+      await revalidatePublicPaths(
+        String(existing?.category ?? parsed.category),
+        parsed.slug,
+      );
       revalidatePath("/admin/news");
-      revalidatePath(`/news/${parsed.slug}`);
       return { success: true, id, message: "Article updated" };
     }
 
-    const existing = await Article.findOne({ slug: parsed.slug });
-    if (existing) {
+    const slugTaken = await Article.findOne({ slug: parsed.slug });
+    if (slugTaken) {
       return { success: false, message: "Slug already exists" };
     }
 
     const created = await Article.create(payload);
-    revalidatePath("/");
+    await revalidatePublicPaths(String(parsed.category), parsed.slug);
     revalidatePath("/admin/news");
     return { success: true, id: String(created._id), message: "Article created" };
   } catch (e) {
@@ -60,9 +68,10 @@ export async function deleteArticle(id: string): Promise<ActionResult> {
   try {
     await requireAdmin();
     await connectDB();
-    const article = await Article.findByIdAndDelete(id);
+    const article = await Article.findById(id).lean();
     if (!article) return { success: false, message: "Not found" };
-    revalidatePath("/");
+    await Article.findByIdAndDelete(id);
+    await revalidatePublicPaths(String(article.category), article.slug);
     revalidatePath("/admin/news");
     return { success: true, message: "Article deleted" };
   } catch {
@@ -132,7 +141,7 @@ export async function toggleArticleStatus(id: string): Promise<ActionResult> {
       article.publishedAt = article.publishedAt ?? new Date();
     }
     await article.save();
-    revalidatePath("/");
+    await revalidatePublicPaths(String(article.category), article.slug);
     revalidatePath("/admin/news");
     return { success: true, message: "Status updated" };
   } catch {

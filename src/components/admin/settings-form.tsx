@@ -48,6 +48,7 @@ export function SettingsForm({ initial }: { initial: SettingsData }) {
       <div className="space-y-1">
         <Label>Site name</Label>
         <Input value={form.siteName} onChange={(e) => set("siteName", e.target.value)} />
+        <p className="text-xs text-muted-foreground">Shown as the main logo text on the public site.</p>
       </div>
       <div className="space-y-1">
         <Label>Description</Label>

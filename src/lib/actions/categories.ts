@@ -24,6 +24,7 @@ export async function saveCategory(data: unknown, id?: string): Promise<ActionRe
 
     revalidatePath("/");
     revalidatePath("/admin/categories");
+    revalidatePath(`/category/${parsed.slug}`);
     return { success: true, message: "Category saved" };
   } catch (e) {
     return {

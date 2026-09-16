@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BreakingNewsTicker } from "@/components/news/breaking-news-ticker";
 import { HomeFeaturedColumn } from "@/components/editorial/home-featured-column";
 import { HomeLatestColumn } from "@/components/editorial/home-latest-column";
 import { HomeMostReadColumn } from "@/components/editorial/home-most-read-column";
@@ -6,6 +7,7 @@ import { NewsletterForm } from "@/components/newsletter/newsletter-form";
 import { isDbConfigured } from "@/lib/db/connect";
 import {
   getArticlesPaginated,
+  getBreakingArticles,
   getMostReadArticles,
 } from "@/lib/queries/articles";
 import { getSettings } from "@/lib/models/Settings";
@@ -40,7 +42,8 @@ export default async function HomePage() {
     );
   }
 
-  const [featured, latest, mostRead] = await Promise.all([
+  const [breaking, featured, latest, mostRead] = await Promise.all([
+    getBreakingArticles(),
     getArticlesPaginated({ page: 1, pageSize: 6, featured: true, status: "published" }),
     getArticlesPaginated({ page: 1, pageSize: 3, status: "published" }),
     getMostReadArticles(5),
@@ -57,10 +60,11 @@ export default async function HomePage() {
       ? mostRead
       : (await getArticlesPaginated({ page: 1, pageSize: 5, trending: true, status: "published" })).items;
 
-  const sectionTitle = hero?.category.name ?? "Featured";
+  const sectionTitle = hero?.sectionLabel || hero?.category.name || "Featured";
 
   return (
     <div className="w-full">
+      <BreakingNewsTicker articles={breaking} />
       <div className="mx-auto max-w-[1440px] px-4 py-8 md:px-8 md:py-12">
         <div className="grid grid-cols-1 gap-y-12 md:grid-cols-12 lg:gap-y-0">
           <HomeFeaturedColumn

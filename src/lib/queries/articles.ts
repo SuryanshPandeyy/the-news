@@ -72,6 +72,7 @@ export async function getArticlesPaginated(
     featured?: boolean;
     breaking?: boolean;
     trending?: boolean;
+    editorsPick?: boolean;
     search?: string;
     todayOnly?: boolean;
     admin?: boolean;
@@ -86,6 +87,7 @@ export async function getArticlesPaginated(
     featured,
     breaking,
     trending,
+    editorsPick,
     search,
     todayOnly,
     admin,
@@ -98,6 +100,7 @@ export async function getArticlesPaginated(
   if (featured !== undefined) filter.featured = featured;
   if (breaking !== undefined) filter.breaking = breaking;
   if (trending !== undefined) filter.trending = trending;
+  if (editorsPick !== undefined) filter.editorsPick = editorsPick;
 
   if (todayOnly) {
     const { start, end } = getTodayRangeInUtc();
@@ -245,6 +248,7 @@ export async function getAdminStats() {
     trending,
     featured,
     breaking,
+    editorsPick,
     subscribers,
   ] = await Promise.all([
     Article.countDocuments(),
@@ -254,6 +258,7 @@ export async function getAdminStats() {
     Article.countDocuments({ trending: true, status: "published" }),
     Article.countDocuments({ featured: true, status: "published" }),
     Article.countDocuments({ breaking: true, status: "published" }),
+    Article.countDocuments({ editorsPick: true, status: "published" }),
     Subscriber.countDocuments({ isActive: true }),
   ]);
 
@@ -265,6 +270,7 @@ export async function getAdminStats() {
     trending,
     featured,
     breaking,
+    editorsPick,
     subscribers,
   };
 }

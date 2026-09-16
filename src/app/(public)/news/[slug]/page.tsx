@@ -120,7 +120,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
       <figure className="relative mb-10 aspect-[16/9] w-full overflow-hidden bg-gray-100 md:aspect-[2/1]">
         <ArticleImage
           src={article.featuredImage}
-          alt={article.title}
+          alt={article.featuredImageAlt || article.title}
           seed={article._id}
           fill
           priority

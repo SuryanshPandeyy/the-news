@@ -291,7 +291,12 @@ export function ArticleForm({
       <Card>
         <CardHeader>
           <CardTitle>Placement & publishing</CardTitle>
-          <CardDescription>Control homepage sections and go-live date.</CardDescription>
+          <CardDescription>
+            Featured → homepage hero column. Breaking → top ticker. Trending → badges and
+            discovery. Editor&apos;s pick → category sidebar. View count → Most Read column
+            (published stories only). Latest column uses newest published stories regardless of
+            flags.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex flex-wrap gap-6">
