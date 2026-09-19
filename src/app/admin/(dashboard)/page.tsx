@@ -136,7 +136,7 @@ export default async function AdminDashboardPage() {
                       {a.title}
                     </Link>
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">{a.category.name}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{a.category?.name ?? "—"}</td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {a.publishedAt
                       ? formatDateIST(a.publishedAt, { dateStyle: "medium" })

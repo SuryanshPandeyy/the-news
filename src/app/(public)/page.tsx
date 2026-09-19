@@ -52,7 +52,7 @@ export default async function HomePage() {
     title: article.title,
     excerpt: article.excerpt,
     featuredImage: article.featuredImage,
-    categoryName: article.category.name,
+    categoryName: article.category?.name,
   }));
 
   return (

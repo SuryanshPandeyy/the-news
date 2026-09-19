@@ -70,9 +70,11 @@ export function NewsCard({
           </div>
         )}
         <div className="min-w-0 flex-1">
-          <Badge variant="secondary" className="mb-2 text-[10px] uppercase">
-            {article.category.name}
-          </Badge>
+          {article.category && (
+            <Badge variant="secondary" className="mb-2 text-[10px] uppercase">
+              {article.category.name}
+            </Badge>
+          )}
           <h3 className="line-clamp-2 font-semibold group-hover:text-primary">
             {article.title}
           </h3>
@@ -107,9 +109,11 @@ export function NewsCard({
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A]/90 via-[#0F172A]/40 to-transparent" />
         <div className="absolute bottom-0 left-0 right-0 p-5 text-white">
-          <Badge className="mb-2 bg-[#DC2626] text-white hover:bg-[#DC2626]">
-            {article.category.name}
-          </Badge>
+          {article.category && (
+            <Badge className="mb-2 bg-[#DC2626] text-white hover:bg-[#DC2626]">
+              {article.category.name}
+            </Badge>
+          )}
           <h3 className="font-serif text-2xl font-bold leading-tight md:text-3xl">
             {article.title}
           </h3>
@@ -142,9 +146,11 @@ export function NewsCard({
         </div>
       )}
       <div className="flex flex-1 flex-col p-4">
-        <Badge variant="outline" className="mb-2 w-fit text-[10px] uppercase">
-          {article.category.name}
-        </Badge>
+        {article.category && (
+          <Badge variant="outline" className="mb-2 w-fit text-[10px] uppercase">
+            {article.category.name}
+          </Badge>
+        )}
         <h3 className="line-clamp-2 font-semibold leading-snug group-hover:text-primary">
           {article.title}
         </h3>

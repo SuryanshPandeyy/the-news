@@ -22,7 +22,7 @@ const articleSchema = new Schema(
     imageCaption: { type: String, trim: true },
     /** Optional badge on homepage hero (e.g. Pursuits); falls back to category name */
     sectionLabel: { type: String, trim: true },
-    category: { type: Schema.Types.ObjectId, ref: "Category", required: true },
+    category: { type: Schema.Types.ObjectId, ref: "Category", default: null },
     author: { type: String, trim: true, default: "Editorial Desk" },
     authorRole: { type: String, trim: true },
     status: { type: String, enum: ["draft", "published"], default: "draft" },

@@ -12,7 +12,7 @@ export const articleSchema = z.object({
   images: z.array(articleImageSchema).optional(),
   featuredImage: z.string().optional(),
   featuredImagePublicId: z.string().optional(),
-  category: z.string().min(1, "Category is required"),
+  category: z.string().optional(),
   author: z.string().optional(),
   status: z.enum(["draft", "published"]).optional(),
   featured: z.boolean().optional(),

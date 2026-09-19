@@ -27,7 +27,7 @@ export function HomeLatestColumn({ articles }: { articles: ArticleListItem[] }) 
               className="group cursor-pointer border-b border-dashed border-gray-200 pb-6 last:border-b-0 last:pb-0"
             >
               <div className="mb-2 flex items-center space-x-3">
-                <CategoryBadge>{item.category.name}</CategoryBadge>
+                {item.category && <CategoryBadge>{item.category.name}</CategoryBadge>}
                 <ArticleDateLabel date={date} />
               </div>
 

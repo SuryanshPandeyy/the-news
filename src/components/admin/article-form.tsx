@@ -87,7 +87,7 @@ export function ArticleForm({
   const [slug, setSlug] = useState(article?.slug ?? "");
   const [slugManual, setSlugManual] = useState(Boolean(article));
   const [content, setContent] = useState(article?.content ?? "<p></p>");
-  const [category, setCategory] = useState(article?.category._id ?? "");
+  const [category, setCategory] = useState(article?.category?._id ?? "");
   const [author, setAuthor] = useState(article?.author ?? defaultAuthor);
   const [images, setImages] = useState<ArticleImageItem[]>(() => initialImages(article));
   const [pendingUploads, setPendingUploads] = useState<PendingUpload[]>([]);
@@ -192,7 +192,7 @@ export function ArticleForm({
         title,
         slug: slug.trim() || undefined,
         content,
-        category,
+        category: category || undefined,
         author,
         images,
         status,
@@ -371,12 +371,11 @@ export function ArticleForm({
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
-            <AdminLabel>{t("categories")}</AdminLabel>
+            <AdminLabel>{t("categoryOptional")}</AdminLabel>
             <select
               className="w-full rounded-lg border px-3 py-2 text-sm"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
-              required
             >
               <option value="">{t("selectCategory")}</option>
               {categories.map((c) => (

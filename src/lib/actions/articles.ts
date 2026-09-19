@@ -12,11 +12,12 @@ import { articleSchema } from "@/lib/validation/schemas";
 
 export type ActionResult = { success: boolean; message?: string; id?: string };
 
-async function revalidatePublicPaths(categoryId: string, slug: string) {
+async function revalidatePublicPaths(categoryId: string | null | undefined, slug: string) {
   revalidatePath("/");
   revalidatePath("/today");
   revalidatePath("/search");
   revalidatePath(`/news/${slug}`);
+  if (!categoryId) return;
   const cat = await Category.findById(categoryId).select("slug").lean();
   if (cat?.slug) {
     revalidatePath(`/category/${cat.slug}`);
@@ -41,10 +42,10 @@ export async function saveArticle(
     if (id) {
       const existing = await Article.findById(id).select("slug category").lean();
       await Article.findByIdAndUpdate(id, payload);
-      await revalidatePublicPaths(
-        String(existing?.category ?? parsed.category),
-        mapped.slug,
-      );
+      if (existing?.category) {
+        await revalidatePublicPaths(String(existing.category), existing.slug);
+      }
+      await revalidatePublicPaths(mapped.category, mapped.slug);
       revalidatePath("/admin/news");
       return { success: true, id, message: "Article updated" };
     }
@@ -55,7 +56,7 @@ export async function saveArticle(
     }
 
     const created = await Article.create(payload);
-    await revalidatePublicPaths(String(parsed.category), mapped.slug);
+    await revalidatePublicPaths(mapped.category, mapped.slug);
     revalidatePath("/admin/news");
     return { success: true, id: String(created._id), message: "Article created" };
   } catch (e) {
@@ -73,7 +74,7 @@ export async function deleteArticle(id: string): Promise<ActionResult> {
     const article = await Article.findById(id).lean();
     if (!article) return { success: false, message: "Not found" };
     await Article.findByIdAndDelete(id);
-    await revalidatePublicPaths(String(article.category), article.slug);
+    await revalidatePublicPaths(article.category ? String(article.category) : null, article.slug);
     revalidatePath("/admin/news");
     return { success: true, message: "Article deleted" };
   } catch {
@@ -136,7 +137,7 @@ export async function toggleArticleStatus(id: string): Promise<ActionResult> {
       article.publishedAt = article.publishedAt ?? new Date();
     }
     await article.save();
-    await revalidatePublicPaths(String(article.category), article.slug);
+    await revalidatePublicPaths(article.category ? String(article.category) : null, article.slug);
     revalidatePath("/admin/news");
     return { success: true, message: "Status updated" };
   } catch {

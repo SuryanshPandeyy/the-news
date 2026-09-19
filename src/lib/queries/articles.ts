@@ -49,15 +49,16 @@ function serializeArticle(doc: Record<string, unknown>): ArticleListItem {
       : undefined,
     createdAt: new Date(doc.createdAt as string).toISOString(),
     updatedAt: new Date(doc.updatedAt as string).toISOString(),
-    category: category
-      ? {
-          _id: String(category._id),
-          name: category.name as string,
-          slug: category.slug as string,
-          description: category.description as string | undefined,
-          image: category.image as string | undefined,
-        }
-      : { _id: "", name: "Uncategorized", slug: "uncategorized" },
+    category:
+      category && category._id
+        ? {
+            _id: String(category._id),
+            name: category.name as string,
+            slug: category.slug as string,
+            description: category.description as string | undefined,
+            image: category.image as string | undefined,
+          }
+        : undefined,
     tags: doc.tags as string[] | undefined,
     views: doc.views as number | undefined,
   };
@@ -195,10 +196,19 @@ export async function incrementArticleViews(slug: string) {
 }
 
 export async function getRelatedArticles(
-  categoryId: string,
+  categoryId: string | undefined,
   excludeSlug: string,
   limit = 4,
 ): Promise<ArticleListItem[]> {
+  if (!categoryId) {
+    const result = await getArticlesPaginated({
+      page: 1,
+      pageSize: limit + 5,
+      status: "published",
+    });
+    return result.items.filter((a) => a.slug !== excludeSlug).slice(0, limit);
+  }
+
   await connectDB();
   const docs = await Article.find({
     status: "published",
@@ -300,7 +310,7 @@ export async function getHomeFeed(): Promise<HomeFeed> {
   ]);
   const more = ordered.filter((a) => !reserved.has(a._id));
 
-  const sectionTitle = hero?.sectionLabel || hero?.category.name || "Featured";
+  const sectionTitle = hero?.sectionLabel || hero?.category?.name || "Featured";
 
   return {
     breaking,

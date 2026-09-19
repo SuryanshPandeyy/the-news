@@ -84,7 +84,7 @@ export function NewsTable({ articles }: { articles: ArticleListItem[] }) {
                 </div>
               </div>
             </TableCell>
-            <TableCell>{article.category.name}</TableCell>
+            <TableCell>{article.category?.name ?? "—"}</TableCell>
             <TableCell>
               <Badge variant={article.status === "published" ? "default" : "secondary"}>
                 {article.status}

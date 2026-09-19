@@ -30,7 +30,7 @@ export type ArticleListItem = {
   publishedAt?: string;
   createdAt: string;
   updatedAt: string;
-  category: CategorySummary;
+  category?: CategorySummary;
   tags?: string[];
   views?: number;
 };

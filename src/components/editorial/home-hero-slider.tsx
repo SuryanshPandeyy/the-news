@@ -11,7 +11,7 @@ export type HeroSlide = {
   title: string;
   excerpt?: string;
   featuredImage?: string;
-  categoryName: string;
+  categoryName?: string;
 };
 
 export function HomeHeroSlider({ slides }: { slides: HeroSlide[] }) {
@@ -59,9 +59,11 @@ export function HomeHeroSlider({ slides }: { slides: HeroSlide[] }) {
 
             <div className="absolute inset-0 mx-auto flex w-full max-w-[1440px] flex-col justify-end p-6 md:p-12">
               <div className="max-w-3xl translate-y-4 transition-transform duration-500 group-hover:translate-y-0">
-                <span className="mb-4 inline-block rounded-sm bg-blue-600 px-3 py-1 text-xs font-bold uppercase tracking-widest text-white shadow-lg">
-                  {slide.categoryName}
-                </span>
+                {slide.categoryName && (
+                  <span className="mb-4 inline-block rounded-sm bg-blue-600 px-3 py-1 text-xs font-bold uppercase tracking-widest text-white shadow-lg">
+                    {slide.categoryName}
+                  </span>
+                )}
                 <h2 className="mb-4 font-serif text-3xl font-bold leading-tight text-white drop-shadow-md md:text-5xl lg:text-6xl">
                   {slide.title}
                 </h2>

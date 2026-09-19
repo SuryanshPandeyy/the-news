@@ -46,7 +46,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   void incrementArticleViews(slug);
 
   const [related, mostRead, locale] = await Promise.all([
-    getRelatedArticles(article.category._id, article.slug),
+    getRelatedArticles(article.category?._id, article.slug),
     getMostReadArticles(5),
     getLocale(),
   ]);
@@ -65,7 +65,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
     datePublished: published,
     dateModified: article.updatedAt,
     author: [{ "@type": "Person", name: article.author ?? "Editorial Desk" }],
-    articleSection: article.category.name,
+    ...(article.category?.name ? { articleSection: article.category.name } : {}),
   };
 
   return (
@@ -85,7 +85,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
 
       <header className="mb-8">
         <div className="mb-6 flex items-center space-x-3">
-          <CategoryBadge>{article.category.name}</CategoryBadge>
+          {article.category && <CategoryBadge>{article.category.name}</CategoryBadge>}
           <ArticleDateLabel date={published} />
         </div>
 

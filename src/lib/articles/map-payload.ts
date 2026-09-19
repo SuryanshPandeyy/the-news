@@ -26,7 +26,7 @@ export function articleInputToDb(parsed: ArticleInput) {
     images,
     featuredImage: first?.url ?? opt(parsed.featuredImage),
     featuredImagePublicId: first?.publicId ?? opt(parsed.featuredImagePublicId),
-    category: parsed.category,
+    category: parsed.category?.trim() ? parsed.category.trim() : null,
     author: opt(parsed.author) ?? "Editorial Desk",
     status,
     featured: Boolean(parsed.featured),
