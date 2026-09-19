@@ -154,10 +154,24 @@ export async function getArticleBySlug(
   if (!doc) return null;
 
   const base = serializeArticle(doc as Record<string, unknown>);
+  const images = (doc.images as { url: string; publicId?: string }[] | undefined)?.map(
+    (img) => ({
+      url: img.url,
+      publicId: img.publicId,
+    }),
+  );
+  const gallery =
+    images && images.length > 0
+      ? images
+      : doc.featuredImage
+        ? [{ url: doc.featuredImage as string, publicId: doc.featuredImagePublicId as string | undefined }]
+        : [];
+
   return {
     ...base,
     content: doc.content,
     featuredImagePublicId: doc.featuredImagePublicId ?? undefined,
+    images: gallery,
     imageCaption: doc.imageCaption ?? undefined,
     seoTitle: doc.seoTitle ?? undefined,
     seoDescription: doc.seoDescription ?? undefined,
@@ -233,6 +247,116 @@ export async function getMostReadArticles(limit = 5): Promise<ArticleListItem[]>
     .lean();
 
   return docs.map((d) => serializeArticle(d as Record<string, unknown>));
+}
+
+const HOME_FEED_CAP = 40;
+
+function orderFeaturedFirst(items: ArticleListItem[]): ArticleListItem[] {
+  const featured = items.filter((a) => a.featured);
+  const rest = items.filter((a) => !a.featured);
+  const seen = new Set<string>();
+  const out: ArticleListItem[] = [];
+  for (const a of [...featured, ...rest]) {
+    if (seen.has(a._id)) continue;
+    seen.add(a._id);
+    out.push(a);
+  }
+  return out;
+}
+
+export type HomeFeed = {
+  breaking: ArticleListItem[];
+  hero: ArticleListItem | null;
+  heroThumbs: ArticleListItem[];
+  latest: ArticleListItem[];
+  mostRead: ArticleListItem[];
+  more: ArticleListItem[];
+  sectionTitle: string;
+};
+
+export async function getHomeFeed(): Promise<HomeFeed> {
+  const [breaking, pool] = await Promise.all([
+    getBreakingArticles(),
+    getArticlesPaginated({ page: 1, pageSize: HOME_FEED_CAP, status: "published" }),
+  ]);
+
+  const ordered = orderFeaturedFirst(pool.items);
+  const hero = ordered[0] ?? null;
+  const heroThumbs = ordered.slice(1, 4);
+  const heroBlockIds = new Set(
+    [hero?._id, ...heroThumbs.map((t) => t._id)].filter(Boolean) as string[],
+  );
+
+  const latest = ordered.filter((a) => !heroBlockIds.has(a._id)).slice(0, 3);
+
+  const mostReadRaw = await getMostReadArticles(5);
+  const hasViewCounts = mostReadRaw.some((a) => (a.views ?? 0) > 0);
+  const mostRead = hasViewCounts ? mostReadRaw : ordered.slice(0, 5);
+
+  const reserved = new Set([
+    ...heroBlockIds,
+    ...latest.map((a) => a._id),
+    ...mostRead.map((a) => a._id),
+  ]);
+  const more = ordered.filter((a) => !reserved.has(a._id));
+
+  const sectionTitle = hero?.sectionLabel || hero?.category.name || "Featured";
+
+  return {
+    breaking,
+    hero,
+    heroThumbs,
+    latest: latest.length > 0 ? latest : ordered.slice(hero ? 1 : 0, hero ? 4 : 3),
+    mostRead,
+    more,
+    sectionTitle,
+  };
+}
+
+export type CategoryFeed = {
+  hero: ArticleListItem | null;
+  editorPicks: ArticleListItem[];
+  gridArticles: ArticleListItem[];
+  pagination: PaginatedResult<ArticleListItem>;
+};
+
+export async function getCategoryFeed(
+  categorySlug: string,
+  page = 1,
+  pageSize = 12,
+): Promise<CategoryFeed> {
+  const [featuredPage, latestPage, editorPicksRaw] = await Promise.all([
+    getArticlesPaginated({
+      page: 1,
+      pageSize: 1,
+      categorySlug,
+      featured: true,
+      status: "published",
+    }),
+    getArticlesPaginated({ page, pageSize, categorySlug, status: "published" }),
+    getEditorsPickArticles(categorySlug, 4),
+  ]);
+
+  const ordered = orderFeaturedFirst(latestPage.items);
+  const hero = featuredPage.items[0] ?? ordered[0] ?? null;
+
+  let editorPicks = editorPicksRaw;
+  if (editorPicks.length === 0) {
+    editorPicks = ordered.filter((a) => a._id !== hero?._id).slice(0, 4);
+  }
+
+  const heroId = hero?._id;
+  const pickIds = new Set(editorPicks.map((p) => p._id));
+  const gridArticles = ordered.filter(
+    (a) => a._id !== heroId && !pickIds.has(a._id),
+  );
+
+  return {
+    hero,
+    editorPicks,
+    gridArticles,
+    pagination: latestPage,
+  };
 }
 
 export async function getAdminStats() {

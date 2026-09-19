@@ -5,8 +5,10 @@ import { ArticleImage } from "@/components/editorial/article-image";
 import { ArticleDateLabel } from "@/components/editorial/category-meta";
 import { ContinueReading } from "@/components/editorial/continue-reading";
 import { PaginationControls } from "@/components/shared/pagination-controls";
-import { getArticlesPaginated, getEditorsPickArticles } from "@/lib/queries/articles";
+import { getCategoryFeed } from "@/lib/queries/articles";
 import { getCategoryBySlug } from "@/lib/queries/categories";
+import { getLocale } from "@/lib/i18n/locale";
+import { t } from "@/lib/i18n/messages";
 
 export const dynamic = "force-dynamic";
 
@@ -33,16 +35,8 @@ export default async function CategoryPage({
   const category = await getCategoryBySlug(slug);
   if (!category) notFound();
 
-  const [featured, latest, editorPicks] = await Promise.all([
-    getArticlesPaginated({ page: 1, pageSize: 1, categorySlug: slug, featured: true, status: "published" }),
-    getArticlesPaginated({ page, pageSize: 12, categorySlug: slug, status: "published" }),
-    getEditorsPickArticles(slug, 4),
-  ]);
-
-  const hero = featured.items[0] ?? latest.items[0];
-  const gridArticles = latest.items.slice(hero ? 1 : 0);
-  const editorPicksList =
-    editorPicks.length > 0 ? editorPicks : latest.items.slice(0, 4);
+  const { hero, editorPicks, gridArticles, pagination } = await getCategoryFeed(slug, page, 12);
+  const locale = await getLocale();
 
   return (
     <div className="mx-auto max-w-[1440px] px-4 py-8 md:px-8 md:py-12">
@@ -51,12 +45,12 @@ export default async function CategoryPage({
           {category.name}
         </h1>
         <div className="hidden space-x-4 md:flex">
-          <span className="cursor-pointer text-sm font-bold uppercase text-black">Latest</span>
+          <span className="cursor-pointer text-sm font-bold uppercase text-black">{t("latest", locale)}</span>
           <Link
             href={`/category/${slug}?page=1`}
             className="text-sm font-bold uppercase text-gray-500 hover:text-black"
           >
-            Archive
+            {t("archive", locale)}
           </Link>
         </div>
       </div>
@@ -95,11 +89,11 @@ export default async function CategoryPage({
 
           <div className="border-t border-gray-200 pt-8 lg:col-span-4 lg:border-t-0 lg:border-l lg:pl-8 lg:pt-0">
             <h3 className="mb-6 flex items-center text-xl font-bold">
-              Editor&apos;s Picks
+              {t("editorsPicks", locale)}
               <ChevronRight className="ml-1 h-4 w-4 text-gray-400" />
             </h3>
             <div className="flex flex-col space-y-6">
-              {editorPicksList.map((item) => (
+              {editorPicks.map((item) => (
                 <article
                   key={item._id}
                   className="group border-b border-dashed border-gray-200 pb-6 last:border-b-0 last:pb-0"
@@ -118,7 +112,9 @@ export default async function CategoryPage({
       )}
 
       <div className="mt-16 border-t-2 border-black pt-10">
-        <h3 className="mb-8 text-2xl font-bold">More from {category.name}</h3>
+        <h3 className="mb-8 text-2xl font-bold">
+          {t("moreFrom", locale)} {category.name}
+        </h3>
         <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
           {gridArticles.map((article) => (
             <article key={article._id} className="group flex flex-col">
@@ -150,8 +146,8 @@ export default async function CategoryPage({
           ))}
         </div>
         <PaginationControls
-          page={latest.page}
-          totalPages={latest.totalPages}
+          page={pagination.page}
+          totalPages={pagination.totalPages}
           basePath={`/category/${slug}`}
         />
       </div>

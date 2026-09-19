@@ -1,5 +1,5 @@
 import { AdminSidebar } from "@/components/admin/admin-sidebar";
-import { SignOutButton } from "@/components/admin/sign-out-button";
+import { AdminTopBar } from "@/components/admin/admin-top-bar";
 
 export default function AdminDashboardLayout({
   children,
@@ -10,10 +10,7 @@ export default function AdminDashboardLayout({
     <div className="flex min-h-screen bg-muted/30">
       <AdminSidebar />
       <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center justify-between border-b bg-background px-4 py-3 md:px-6">
-          <p className="text-sm font-medium text-muted-foreground">Editorial CMS</p>
-          <SignOutButton />
-        </header>
+        <AdminTopBar />
         <main className="flex-1 p-4 md:p-6">{children}</main>
       </div>
     </div>

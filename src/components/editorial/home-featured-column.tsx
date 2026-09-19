@@ -1,8 +1,11 @@
+"use client";
+
 import Link from "next/link";
 import { ArticleImage } from "@/components/editorial/article-image";
 import { ArticleDateLabel, CategoryBadge } from "@/components/editorial/category-meta";
 import { ContinueReading } from "@/components/editorial/continue-reading";
 import { SectionHeader } from "@/components/editorial/section-header";
+import { useLocale } from "@/components/providers/locale-provider";
 import type { ArticleListItem } from "@/lib/types";
 
 export function HomeFeaturedColumn({
@@ -14,11 +17,13 @@ export function HomeFeaturedColumn({
   thumbnails: ArticleListItem[];
   sectionTitle?: string;
 }) {
+  const { t } = useLocale();
+
   if (!article) {
     return (
       <div className="col-span-1 flex flex-col md:col-span-12 lg:col-span-4 lg:border-r lg:border-gray-200 lg:pr-8">
         <SectionHeader title={sectionTitle} href="/search" />
-        <p className="text-[15px] text-gray-600 font-serif">No featured stories yet.</p>
+        <p className="font-serif text-[15px] text-gray-600">—</p>
       </div>
     );
   }
@@ -32,8 +37,8 @@ export function HomeFeaturedColumn({
         title={sectionTitle}
         href={`/category/${article.category.slug}`}
         links={[
-          { label: "Latest", href: "/today", active: true },
-          { label: "Trending", href: "/search?q=trending" },
+          { label: t("latest"), href: "/today", active: true },
+          { label: t("trending"), href: "/search?q=trending" },
         ]}
       />
 

@@ -31,8 +31,9 @@ export async function saveArticle(
     const parsed = articleSchema.parse(data);
     await connectDB();
 
+    const mapped = articleInputToDb(parsed);
     const payload = {
-      ...articleInputToDb(parsed),
+      ...mapped,
       content: sanitizeArticleContent(parsed.content),
     };
 
@@ -41,19 +42,19 @@ export async function saveArticle(
       await Article.findByIdAndUpdate(id, payload);
       await revalidatePublicPaths(
         String(existing?.category ?? parsed.category),
-        parsed.slug,
+        mapped.slug,
       );
       revalidatePath("/admin/news");
       return { success: true, id, message: "Article updated" };
     }
 
-    const slugTaken = await Article.findOne({ slug: parsed.slug });
+    const slugTaken = await Article.findOne({ slug: mapped.slug });
     if (slugTaken) {
       return { success: false, message: "Slug already exists" };
     }
 
     const created = await Article.create(payload);
-    await revalidatePublicPaths(String(parsed.category), parsed.slug);
+    await revalidatePublicPaths(String(parsed.category), mapped.slug);
     revalidatePath("/admin/news");
     return { success: true, id: String(created._id), message: "Article created" };
   } catch (e) {
@@ -101,22 +102,15 @@ export async function duplicateArticle(id: string): Promise<ActionResult> {
       subtitle: article.subtitle,
       content: article.content,
       featuredImage: article.featuredImage,
-      featuredImageAlt: article.featuredImageAlt,
       featuredImagePublicId: article.featuredImagePublicId,
-      imageCaption: article.imageCaption,
-      sectionLabel: article.sectionLabel,
+      images: article.images,
       category: article.category,
       author: article.author,
-      authorRole: article.authorRole,
       status: "draft",
       featured: article.featured,
       breaking: false,
       trending: article.trending,
       editorsPick: article.editorsPick,
-      seoTitle: article.seoTitle,
-      seoDescription: article.seoDescription,
-      seoKeywords: article.seoKeywords,
-      tags: article.tags,
       views: 0,
     });
 

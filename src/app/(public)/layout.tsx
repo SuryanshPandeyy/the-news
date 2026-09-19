@@ -1,6 +1,20 @@
+import type { Metadata } from "next";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { getSiteShell } from "@/lib/data/site-shell";
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { settings } = await getSiteShell();
+  const iconUrl = settings.favicon || settings.logo;
+  return {
+    title: {
+      default: settings.siteName,
+      template: `%s | ${settings.siteName}`,
+    },
+    description: settings.siteDescription ?? undefined,
+    icons: iconUrl ? { icon: iconUrl, shortcut: iconUrl } : undefined,
+  };
+}
 
 export default async function PublicLayout({
   children,
@@ -11,7 +25,11 @@ export default async function PublicLayout({
 
   return (
     <div className="flex min-h-full flex-col bg-white font-sans text-gray-900 antialiased selection:bg-blue-200 selection:text-black">
-      <SiteHeader siteName={settings.siteName} categories={categories} />
+      <SiteHeader
+        siteName={settings.siteName}
+        logo={settings.logo ?? undefined}
+        categories={categories}
+      />
       {!categories.length && (
         <div className="border-b bg-amber-50 px-4 py-2 text-center text-sm text-amber-900">
           Database not connected or empty. Add MONGODB_URI and seed categories in the admin panel.

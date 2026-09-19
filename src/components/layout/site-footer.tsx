@@ -1,5 +1,7 @@
+"use client";
+
 import Link from "next/link";
-import type { CategorySummary } from "@/lib/types";
+import { useLocale } from "@/components/providers/locale-provider";
 
 type SettingsFooter = {
   siteName: string;
@@ -11,8 +13,9 @@ export function SiteFooter({
   settings,
 }: {
   settings: SettingsFooter;
-  categories: CategorySummary[];
+  categories: unknown[];
 }) {
+  const { t } = useLocale();
   const year = new Date().getFullYear();
 
   return (
@@ -20,12 +23,18 @@ export function SiteFooter({
       <div className="mx-auto flex max-w-[1440px] flex-col items-center justify-between text-[13px] font-medium text-gray-500 md:flex-row">
         <div className="mb-4 md:mb-0">
           {settings.footerText ??
-            `© ${year} ${settings.siteName}. All Rights Reserved`}
+            `© ${year} ${settings.siteName}. ${t("allRights")}`}
         </div>
         <div className="flex space-x-6">
-          <Link href="/terms" className="hover:text-black">Terms of Service</Link>
-          <Link href="/privacy" className="hover:text-black">Privacy Policy</Link>
-          <Link href="/search" className="hover:text-black">Search</Link>
+          <Link href="/terms" className="hover:text-black">
+            {t("termsOfService")}
+          </Link>
+          <Link href="/privacy" className="hover:text-black">
+            {t("privacyPolicy")}
+          </Link>
+          <Link href="/search" className="hover:text-black">
+            {t("search")}
+          </Link>
         </div>
       </div>
     </footer>

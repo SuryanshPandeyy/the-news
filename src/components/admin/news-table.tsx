@@ -18,10 +18,12 @@ import {
   duplicateArticle,
   toggleArticleStatus,
 } from "@/lib/actions/articles";
+import { useLocale } from "@/components/providers/locale-provider";
 import type { ArticleListItem } from "@/lib/types";
 import { formatDateIST } from "@/lib/timezone";
 
 export function NewsTable({ articles }: { articles: ArticleListItem[] }) {
+  const { t } = useLocale();
   async function onDelete(id: string) {
     if (!confirm("Delete this article?")) return;
     const res = await deleteArticle(id);
@@ -52,13 +54,13 @@ export function NewsTable({ articles }: { articles: ArticleListItem[] }) {
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Article</TableHead>
-          <TableHead>Category</TableHead>
-          <TableHead>Status</TableHead>
+          <TableHead>{t("title")}</TableHead>
+          <TableHead>{t("categories")}</TableHead>
+          <TableHead>{t("status")}</TableHead>
           <TableHead>Flags</TableHead>
-          <TableHead>Published</TableHead>
-          <TableHead className="text-right">Views</TableHead>
-          <TableHead className="text-right">Actions</TableHead>
+          <TableHead>{t("publishedAt")}</TableHead>
+          <TableHead className="text-right">{t("viewCount")}</TableHead>
+          <TableHead className="text-right">{t("actions")}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -89,10 +91,10 @@ export function NewsTable({ articles }: { articles: ArticleListItem[] }) {
               </Badge>
             </TableCell>
             <TableCell className="space-x-1">
-              {article.featured && <Badge variant="outline">Featured</Badge>}
-              {article.breaking && <Badge className="bg-[#DC2626]">Breaking</Badge>}
-              {article.trending && <Badge variant="outline">Trending</Badge>}
-              {article.editorsPick && <Badge variant="outline">Editor&apos;s pick</Badge>}
+              {article.featured && <Badge variant="outline">{t("featuredHero")}</Badge>}
+              {article.breaking && <Badge className="bg-[#DC2626]">{t("breaking")}</Badge>}
+              {article.trending && <Badge variant="outline">{t("trending")}</Badge>}
+              {article.editorsPick && <Badge variant="outline">{t("editorsPick")}</Badge>}
             </TableCell>
             <TableCell className="text-sm text-muted-foreground">
               {article.publishedAt
@@ -108,23 +110,23 @@ export function NewsTable({ articles }: { articles: ArticleListItem[] }) {
                   href={`/admin/news/${article._id}/edit`}
                   className="inline-flex h-7 items-center rounded-lg px-2 text-sm hover:bg-muted"
                 >
-                  Edit
+                  {t("edit")}
                 </Link>
                 <Link
                   href={`/news/${article.slug}`}
                   target="_blank"
                   className="inline-flex h-7 items-center rounded-lg px-2 text-sm hover:bg-muted"
                 >
-                  View
+                  {t("view")}
                 </Link>
                 <Button variant="ghost" size="sm" onClick={() => onToggle(article._id)}>
-                  {article.status === "published" ? "Unpublish" : "Publish"}
+                  {article.status === "published" ? t("unpublish") : t("publish")}
                 </Button>
                 <Button variant="ghost" size="sm" onClick={() => onDuplicate(article._id)}>
-                  Copy
+                  {t("copy")}
                 </Button>
                 <Button variant="destructive" size="sm" onClick={() => onDelete(article._id)}>
-                  Delete
+                  {t("delete")}
                 </Button>
               </div>
             </TableCell>

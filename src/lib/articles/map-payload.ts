@@ -1,5 +1,6 @@
 import type { z } from "zod";
 import type { articleSchema } from "@/lib/validation/schemas";
+import { slugify } from "@/lib/utils/slug";
 
 type ArticleInput = z.infer<typeof articleSchema>;
 
@@ -10,32 +11,30 @@ function opt(value?: string | null): string | undefined {
 
 /** Maps validated admin form input to MongoDB article fields (frontend-compatible). */
 export function articleInputToDb(parsed: ArticleInput) {
+  const slugRaw = parsed.slug?.trim();
+  const slug = (slugRaw ? slugRaw : slugify(parsed.title)).toLowerCase();
+  const images = (parsed.images ?? []).filter((img) => img.url?.trim());
+  const first = images[0];
+  const status = parsed.status ?? "published";
+
   return {
     title: parsed.title.trim(),
-    slug: parsed.slug.trim().toLowerCase(),
+    slug,
     excerpt: opt(parsed.excerpt),
-    subtitle: opt(parsed.subtitle),
     content: parsed.content,
-    featuredImage: opt(parsed.featuredImage),
-    featuredImageAlt: opt(parsed.featuredImageAlt),
-    featuredImagePublicId: opt(parsed.featuredImagePublicId),
-    imageCaption: opt(parsed.imageCaption),
-    sectionLabel: opt(parsed.sectionLabel),
+    images,
+    featuredImage: first?.url ?? opt(parsed.featuredImage),
+    featuredImagePublicId: first?.publicId ?? opt(parsed.featuredImagePublicId),
     category: parsed.category,
     author: opt(parsed.author) ?? "Editorial Desk",
-    authorRole: opt(parsed.authorRole),
-    status: parsed.status,
+    status,
     featured: Boolean(parsed.featured),
     breaking: Boolean(parsed.breaking),
     trending: Boolean(parsed.trending),
     editorsPick: Boolean(parsed.editorsPick),
     views: parsed.views ?? 0,
-    seoTitle: opt(parsed.seoTitle),
-    seoDescription: opt(parsed.seoDescription),
-    seoKeywords: parsed.seoKeywords?.filter(Boolean),
-    tags: parsed.tags?.filter(Boolean),
     publishedAt:
-      parsed.status === "published"
+      status === "published"
         ? parsed.publishedAt
           ? new Date(parsed.publishedAt)
           : new Date()

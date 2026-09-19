@@ -1,17 +1,22 @@
+"use client";
+
 import Link from "next/link";
 import { ArticleDateLabel, CategoryBadge } from "@/components/editorial/category-meta";
 import { ContinueReading } from "@/components/editorial/continue-reading";
 import { SectionHeader } from "@/components/editorial/section-header";
+import { useLocale } from "@/components/providers/locale-provider";
 import type { ArticleListItem } from "@/lib/types";
 
 export function HomeLatestColumn({ articles }: { articles: ArticleListItem[] }) {
+  const { t } = useLocale();
+
   return (
     <div className="col-span-1 mt-10 flex flex-col md:col-span-12 lg:col-span-4 lg:mt-0 lg:border-r lg:border-gray-200 lg:px-8">
-      <SectionHeader title="Latest News" href="/today" />
+      <SectionHeader title={t("latestNews")} href="/today" />
 
       <div className="flex flex-col space-y-6">
         {articles.length === 0 && (
-          <p className="font-serif text-[15px] text-gray-600">No articles published yet.</p>
+          <p className="font-serif text-[15px] text-gray-600">—</p>
         )}
         {articles.map((item) => {
           const date = item.publishedAt ?? item.createdAt;

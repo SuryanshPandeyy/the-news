@@ -10,6 +10,8 @@ const settingsSchema = new Schema(
     },
     logo: { type: String },
     favicon: { type: String },
+    defaultAuthor: { type: String, default: "Editorial Desk" },
+    defaultLocale: { type: String, enum: ["hi", "en"], default: "hi" },
     contactEmail: { type: String },
     socialFacebook: { type: String },
     socialTwitter: { type: String },

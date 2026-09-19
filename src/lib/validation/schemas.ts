@@ -1,30 +1,27 @@
 import { z } from "zod";
 
+const articleImageSchema = z.object({
+  url: z.string().min(1),
+  publicId: z.string().optional(),
+});
+
 export const articleSchema = z.object({
   title: z.string().min(3, "Title is required"),
-  slug: z.string().min(3, "Slug is required"),
+  slug: z.string().optional(),
   excerpt: z.string().optional(),
-  subtitle: z.string().optional(),
   content: z.string().min(1, "Content is required"),
+  images: z.array(articleImageSchema).optional(),
   featuredImage: z.string().optional(),
-  featuredImageAlt: z.string().optional(),
   featuredImagePublicId: z.string().optional(),
-  imageCaption: z.string().optional(),
-  sectionLabel: z.string().optional(),
   category: z.string().min(1, "Category is required"),
   author: z.string().optional(),
-  authorRole: z.string().optional(),
-  status: z.enum(["draft", "published"]),
+  status: z.enum(["draft", "published"]).optional(),
   featured: z.boolean().optional(),
   breaking: z.boolean().optional(),
   trending: z.boolean().optional(),
   editorsPick: z.boolean().optional(),
   views: z.number().int().min(0).optional(),
   publishedAt: z.string().optional().nullable(),
-  seoTitle: z.string().optional(),
-  seoDescription: z.string().optional(),
-  seoKeywords: z.array(z.string()).optional(),
-  tags: z.array(z.string()).optional(),
 });
 
 export const categorySchema = z.object({
@@ -62,6 +59,9 @@ export const settingsSchema = z.object({
   siteName: z.string().min(1),
   siteDescription: z.string().optional(),
   logo: z.string().optional(),
+  favicon: z.string().optional(),
+  defaultAuthor: z.string().optional(),
+  defaultLocale: z.enum(["hi", "en"]).optional(),
   contactEmail: z.string().email().optional().or(z.literal("")),
   socialFacebook: z.string().optional(),
   socialTwitter: z.string().optional(),

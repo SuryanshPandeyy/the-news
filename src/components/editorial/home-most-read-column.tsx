@@ -1,8 +1,11 @@
+"use client";
+
 import Link from "next/link";
 import { ArticleImage } from "@/components/editorial/article-image";
 import { ArticleDateLabel, CategoryBadge } from "@/components/editorial/category-meta";
 import { ContinueReading } from "@/components/editorial/continue-reading";
 import { SectionHeader } from "@/components/editorial/section-header";
+import { useLocale } from "@/components/providers/locale-provider";
 import type { ArticleListItem } from "@/lib/types";
 
 export function HomeMostReadColumn({
@@ -12,6 +15,8 @@ export function HomeMostReadColumn({
   articles: ArticleListItem[];
   embedded?: boolean;
 }) {
+  const { t } = useLocale();
+
   return (
     <div
       className={
@@ -20,7 +25,7 @@ export function HomeMostReadColumn({
           : "col-span-1 mt-10 flex flex-col md:col-span-12 lg:col-span-4 lg:mt-0 lg:pl-8"
       }
     >
-      <SectionHeader title="Most Read" href="/search" />
+      <SectionHeader title={t("mostRead")} href="/search" />
 
       <div className="flex flex-col space-y-6">
         {articles.map((item) => {

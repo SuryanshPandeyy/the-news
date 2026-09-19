@@ -1,23 +1,24 @@
 import { SettingsForm } from "@/components/admin/settings-form";
 import { getSettings } from "@/lib/models/Settings";
+import { t } from "@/lib/i18n/messages";
+import { getLocale } from "@/lib/i18n/locale";
 import { orUndefined } from "@/lib/utils/nullish";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminSettingsPage() {
-  const settings = await getSettings();
+  const [settings, locale] = await Promise.all([getSettings(), getLocale()]);
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Settings</h1>
-      <p className="text-sm text-muted-foreground">
-        Site name is the wordmark in the public header (unless you add a logo URL later). Default
-        SEO fields apply when a story has no custom meta.
-      </p>
+      <h1 className="text-2xl font-bold text-black">{t("settings", locale)}</h1>
       <SettingsForm
         initial={{
           siteName: settings.siteName,
           siteDescription: orUndefined(settings.siteDescription),
           logo: orUndefined(settings.logo),
+          favicon: orUndefined(settings.favicon),
+          defaultAuthor: orUndefined(settings.defaultAuthor),
+          defaultLocale: settings.defaultLocale === "en" ? "en" : "hi",
           contactEmail: orUndefined(settings.contactEmail),
           socialFacebook: orUndefined(settings.socialFacebook),
           socialTwitter: orUndefined(settings.socialTwitter),

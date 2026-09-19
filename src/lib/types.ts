@@ -1,3 +1,8 @@
+export type ArticleImageItem = {
+  url: string;
+  publicId?: string;
+};
+
 export type CategorySummary = {
   _id: string;
   name: string;
@@ -33,6 +38,7 @@ export type ArticleListItem = {
 export type ArticleDetail = ArticleListItem & {
   content: string;
   featuredImagePublicId?: string;
+  images?: ArticleImageItem[];
   imageCaption?: string;
   seoTitle?: string;
   seoDescription?: string;

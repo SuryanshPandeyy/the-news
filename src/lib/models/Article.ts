@@ -11,6 +11,13 @@ const articleSchema = new Schema(
     featuredImage: { type: String },
     featuredImageAlt: { type: String, trim: true },
     featuredImagePublicId: { type: String },
+    /** Gallery images; first item mirrors featuredImage on save */
+    images: [
+      {
+        url: { type: String, required: true },
+        publicId: { type: String },
+      },
+    ],
     /** Credit line under the hero image */
     imageCaption: { type: String, trim: true },
     /** Optional badge on homepage hero (e.g. Pursuits); falls back to category name */

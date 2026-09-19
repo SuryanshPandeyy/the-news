@@ -1,15 +1,17 @@
 import Link from "next/link";
 import { NewsTable } from "@/components/admin/news-table";
 import { getArticlesPaginated } from "@/lib/queries/articles";
+import { getLocale } from "@/lib/i18n/locale";
+import { t, type MessageKey } from "@/lib/i18n/messages";
 
 export const dynamic = "force-dynamic";
 
-const placementFilters = [
-  { key: "featured", label: "Featured (hero)" },
-  { key: "breaking", label: "Breaking" },
-  { key: "trending", label: "Trending" },
-  { key: "editorsPick", label: "Editor's pick" },
-] as const;
+const placementFilters: { key: string; labelKey: MessageKey }[] = [
+  { key: "featured", labelKey: "placementFiltersFeatured" },
+  { key: "breaking", labelKey: "breaking" },
+  { key: "trending", labelKey: "trending" },
+  { key: "editorsPick", labelKey: "editorsPick" },
+];
 
 export default async function AdminNewsPage({
   searchParams,
@@ -30,16 +32,19 @@ export default async function AdminNewsPage({
       ? params.status
       : undefined;
 
-  const data = await getArticlesPaginated({
-    page,
-    pageSize: 20,
-    admin: true,
-    status,
-    featured: params.featured === "1" ? true : undefined,
-    breaking: params.breaking === "1" ? true : undefined,
-    trending: params.trending === "1" ? true : undefined,
-    editorsPick: params.editorsPick === "1" ? true : undefined,
-  });
+  const [data, locale] = await Promise.all([
+    getArticlesPaginated({
+      page,
+      pageSize: 20,
+      admin: true,
+      status,
+      featured: params.featured === "1" ? true : undefined,
+      breaking: params.breaking === "1" ? true : undefined,
+      trending: params.trending === "1" ? true : undefined,
+      editorsPick: params.editorsPick === "1" ? true : undefined,
+    }),
+    getLocale(),
+  ]);
 
   function filterHref(extra: Record<string, string | undefined>) {
     const q = new URLSearchParams();
@@ -55,29 +60,25 @@ export default async function AdminNewsPage({
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Stories</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Maps to homepage columns: Featured hero, Latest, Most read (views), plus category
-            editor&apos;s picks.
-          </p>
+          <h1 className="text-2xl font-bold text-black">{t("stories", locale)}</h1>
         </div>
         <Link
           href="/admin/news/create"
           className="inline-flex h-9 items-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground"
         >
-          New story
+          {t("newStory", locale)}
         </Link>
       </div>
 
       <div className="flex flex-wrap gap-3 text-sm">
         <Link href="/admin/news" className="font-medium hover:underline">
-          All
+          {t("all", locale)}
         </Link>
         <Link href="/admin/news?status=published" className="hover:underline">
-          Published
+          {t("published", locale)}
         </Link>
         <Link href="/admin/news?status=draft" className="hover:underline">
-          Drafts
+          {t("drafts", locale)}
         </Link>
         <span className="text-muted-foreground">|</span>
         {placementFilters.map((f) => (
@@ -86,7 +87,7 @@ export default async function AdminNewsPage({
             href={filterHref({ [f.key]: "1", status: status ?? undefined })}
             className="hover:underline"
           >
-            {f.label}
+            {t(f.labelKey, locale)}
           </Link>
         ))}
       </div>
