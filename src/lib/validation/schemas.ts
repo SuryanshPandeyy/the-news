@@ -12,6 +12,8 @@ export const articleSchema = z.object({
   images: z.array(articleImageSchema).optional(),
   featuredImage: z.string().optional(),
   featuredImagePublicId: z.string().optional(),
+  bannerImage: z.string().optional(),
+  bannerImagePublicId: z.string().optional(),
   category: z.string().optional(),
   author: z.string().optional(),
   status: z.enum(["draft", "published"]).optional(),

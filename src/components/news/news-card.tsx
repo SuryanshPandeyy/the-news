@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatDateIST } from "@/lib/timezone";
 import type { ArticleListItem } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { newsArticlePath } from "@/lib/utils/slug";
 
 type Variant = "standard" | "compact" | "featured" | "horizontal";
 
@@ -23,7 +24,7 @@ export function NewsCard({
   if (variant === "compact") {
     return (
       <Link
-        href={`/news/${article.slug}`}
+        href={newsArticlePath(article.slug)}
         className={cn("group flex gap-3 py-2", className)}
       >
         {article.featuredImage && (
@@ -52,7 +53,7 @@ export function NewsCard({
   if (variant === "horizontal") {
     return (
       <Link
-        href={`/news/${article.slug}`}
+        href={newsArticlePath(article.slug)}
         className={cn(
           "group flex gap-4 rounded-lg border bg-card p-3 transition-shadow hover:shadow-md",
           className,
@@ -89,7 +90,7 @@ export function NewsCard({
   if (variant === "featured") {
     return (
       <Link
-        href={`/news/${article.slug}`}
+        href={newsArticlePath(article.slug)}
         className={cn(
           "group relative block aspect-[16/10] overflow-hidden rounded-xl",
           className,
@@ -127,7 +128,7 @@ export function NewsCard({
 
   return (
     <Link
-      href={`/news/${article.slug}`}
+      href={newsArticlePath(article.slug)}
       className={cn(
         "group flex flex-col overflow-hidden rounded-xl border bg-card transition-shadow hover:shadow-md",
         className,

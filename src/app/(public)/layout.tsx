@@ -30,11 +30,6 @@ export default async function PublicLayout({
         logo={settings.logo ?? undefined}
         categories={categories}
       />
-      {!categories.length && (
-        <div className="border-b bg-amber-50 px-4 py-2 text-center text-sm text-amber-900">
-          Database not connected or empty. Add MONGODB_URI and seed categories in the admin panel.
-        </div>
-      )}
       <main className="flex-1">{children}</main>
       <SiteFooter
         settings={{

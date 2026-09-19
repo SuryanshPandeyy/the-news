@@ -8,6 +8,8 @@ import { SiteNavSidebar } from "@/components/layout/site-nav-sidebar";
 import { useLocale } from "@/components/providers/locale-provider";
 import { formatDateIST } from "@/lib/timezone";
 import type { CategorySummary } from "@/lib/types";
+import { categoryPath } from "@/lib/utils/slug";
+import { DEFAULT_SECTION_LINKS } from "@/lib/nav/default-sections";
 
 export function SiteHeader({
   siteName,
@@ -29,15 +31,7 @@ export function SiteHeader({
     year: "numeric",
   });
 
-  const navCategories =
-    categories.length > 0
-      ? categories
-      : [
-          { _id: "w", name: "World", slug: "world" },
-          { _id: "p", name: "Politics", slug: "politics" },
-          { _id: "b", name: "Business", slug: "business" },
-          { _id: "t", name: "Tech", slug: "technology" },
-        ];
+  const useDefaultSections = categories.length === 0;
 
   return (
     <>
@@ -116,15 +110,25 @@ export function SiteHeader({
             >
               {t("home")}
             </Link>
-            {navCategories.map((item) => (
-              <Link
-                key={item._id}
-                href={`/category/${item.slug}`}
-                className="whitespace-nowrap rounded-md px-3 py-1.5 text-[13px] font-semibold text-gray-700 transition-all hover:bg-blue-50 hover:text-blue-700"
-              >
-                {item.name}
-              </Link>
-            ))}
+            {useDefaultSections
+              ? DEFAULT_SECTION_LINKS.map((link) => (
+                  <Link
+                    key={link.id}
+                    href={link.href}
+                    className="whitespace-nowrap rounded-md px-3 py-1.5 text-[13px] font-semibold text-gray-700 transition-all hover:bg-blue-50 hover:text-blue-700"
+                  >
+                    {t(link.labelKey)}
+                  </Link>
+                ))
+              : categories.map((item) => (
+                  <Link
+                    key={item._id}
+                    href={categoryPath(item.slug)}
+                    className="whitespace-nowrap rounded-md px-3 py-1.5 text-[13px] font-semibold text-gray-700 transition-all hover:bg-blue-50 hover:text-blue-700"
+                  >
+                    {item.name}
+                  </Link>
+                ))}
           </nav>
 
           <div className="sticky right-0 ml-4 hidden shrink-0 bg-white pl-4 shadow-[-10px_0_10px_-10px_rgba(0,0,0,0.1)] md:block">

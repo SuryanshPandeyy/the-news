@@ -18,9 +18,10 @@ import {
   duplicateArticle,
   toggleArticleStatus,
 } from "@/lib/actions/articles";
-import { useLocale } from "@/components/providers/locale-provider";
+import { newsArticlePath } from "@/lib/utils/slug";
 import type { ArticleListItem } from "@/lib/types";
 import { formatDateIST } from "@/lib/timezone";
+import { useLocale } from "@/components/providers/locale-provider";
 
 export function NewsTable({ articles }: { articles: ArticleListItem[] }) {
   const { t } = useLocale();
@@ -113,7 +114,7 @@ export function NewsTable({ articles }: { articles: ArticleListItem[] }) {
                   {t("edit")}
                 </Link>
                 <Link
-                  href={`/news/${article.slug}`}
+                  href={newsArticlePath(article.slug)}
                   target="_blank"
                   className="inline-flex h-7 items-center rounded-lg px-2 text-sm hover:bg-muted"
                 >

@@ -6,6 +6,7 @@ import { ContinueReading } from "@/components/editorial/continue-reading";
 import { SectionHeader } from "@/components/editorial/section-header";
 import { useLocale } from "@/components/providers/locale-provider";
 import type { ArticleListItem } from "@/lib/types";
+import { newsArticlePath } from "@/lib/utils/slug";
 
 export function HomeLatestColumn({ articles }: { articles: ArticleListItem[] }) {
   const { t } = useLocale();
@@ -20,7 +21,7 @@ export function HomeLatestColumn({ articles }: { articles: ArticleListItem[] }) 
         )}
         {articles.map((item) => {
           const date = item.publishedAt ?? item.createdAt;
-          const href = `/news/${item.slug}`;
+          const href = newsArticlePath(item.slug);
           return (
             <article
               key={item._id}

@@ -9,6 +9,7 @@ import { getCategoryFeed } from "@/lib/queries/articles";
 import { getCategoryBySlug } from "@/lib/queries/categories";
 import { getLocale } from "@/lib/i18n/locale";
 import { t } from "@/lib/i18n/messages";
+import { categoryPath, newsArticlePath } from "@/lib/utils/slug";
 
 export const dynamic = "force-dynamic";
 
@@ -35,7 +36,11 @@ export default async function CategoryPage({
   const category = await getCategoryBySlug(slug);
   if (!category) notFound();
 
-  const { hero, editorPicks, gridArticles, pagination } = await getCategoryFeed(slug, page, 12);
+  const { hero, editorPicks, gridArticles, pagination } = await getCategoryFeed(
+    category.slug,
+    page,
+    12,
+  );
   const locale = await getLocale();
 
   return (
@@ -47,7 +52,7 @@ export default async function CategoryPage({
         <div className="hidden space-x-4 md:flex">
           <span className="cursor-pointer text-sm font-bold uppercase text-black">{t("latest", locale)}</span>
           <Link
-            href={`/category/${slug}?page=1`}
+            href={categoryPath(category.slug)}
             className="text-sm font-bold uppercase text-gray-500 hover:text-black"
           >
             {t("archive", locale)}
@@ -60,7 +65,7 @@ export default async function CategoryPage({
           <div className="lg:col-span-8">
             <article className="group flex flex-col">
               <Link
-                href={`/news/${hero.slug}`}
+                href={newsArticlePath(hero.slug)}
                 className="relative mb-4 aspect-[16/9] w-full overflow-hidden bg-gray-100"
               >
                 <ArticleImage
@@ -73,7 +78,7 @@ export default async function CategoryPage({
                 />
               </Link>
               <ArticleDateLabel date={hero.publishedAt ?? hero.createdAt} />
-              <Link href={`/news/${hero.slug}`}>
+              <Link href={newsArticlePath(hero.slug)}>
                 <h2 className="mb-4 pr-4 text-[32px] font-bold leading-tight transition-colors group-hover:text-blue-700 md:text-[40px]">
                   {hero.title}
                 </h2>
@@ -83,7 +88,7 @@ export default async function CategoryPage({
                   {hero.excerpt}
                 </p>
               )}
-              <ContinueReading href={`/news/${hero.slug}`} />
+              <ContinueReading href={newsArticlePath(hero.slug)} />
             </article>
           </div>
 
@@ -99,7 +104,7 @@ export default async function CategoryPage({
                   className="group border-b border-dashed border-gray-200 pb-6 last:border-b-0 last:pb-0"
                 >
                   <ArticleDateLabel date={item.publishedAt ?? item.createdAt} />
-                  <Link href={`/news/${item.slug}`}>
+                  <Link href={newsArticlePath(item.slug)}>
                     <h4 className="text-[16px] font-bold leading-tight transition-colors group-hover:text-blue-700">
                       {item.title}
                     </h4>
@@ -119,7 +124,7 @@ export default async function CategoryPage({
           {gridArticles.map((article) => (
             <article key={article._id} className="group flex flex-col">
               <Link
-                href={`/news/${article.slug}`}
+                href={newsArticlePath(article.slug)}
                 className="relative mb-3 aspect-video w-full overflow-hidden bg-gray-100"
               >
                 <ArticleImage
@@ -132,7 +137,7 @@ export default async function CategoryPage({
                 />
               </Link>
               <ArticleDateLabel date={article.publishedAt ?? article.createdAt} />
-              <Link href={`/news/${article.slug}`}>
+              <Link href={newsArticlePath(article.slug)}>
                 <h4 className="mb-2 text-[20px] font-bold leading-tight transition-colors group-hover:text-blue-700">
                   {article.title}
                 </h4>

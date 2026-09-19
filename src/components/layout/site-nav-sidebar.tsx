@@ -6,6 +6,8 @@ import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { LanguageSwitcher } from "@/components/shared/language-switcher";
 import { useLocale } from "@/components/providers/locale-provider";
 import type { CategorySummary } from "@/lib/types";
+import { categoryPath } from "@/lib/utils/slug";
+import { DEFAULT_SECTION_LINKS } from "@/lib/nav/default-sections";
 
 export function SiteNavSidebar({
   open,
@@ -17,6 +19,7 @@ export function SiteNavSidebar({
   categories: CategorySummary[];
 }) {
   const { t } = useLocale();
+  const useDefaultSections = categories.length === 0;
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -68,19 +71,33 @@ export function SiteNavSidebar({
               </span>
               <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-blue-600" />
             </Link>
-            {categories.map((cat) => (
-              <Link
-                key={cat._id}
-                href={`/category/${cat.slug}`}
-                onClick={() => onOpenChange(false)}
-                className="group flex w-full items-center justify-between px-6 py-3 text-left transition-colors hover:bg-gray-50"
-              >
-                <span className="text-[15px] font-medium text-gray-700 group-hover:text-blue-600">
-                  {cat.name}
-                </span>
-                <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-blue-600" />
-              </Link>
-            ))}
+            {useDefaultSections
+              ? DEFAULT_SECTION_LINKS.map((link) => (
+                  <Link
+                    key={link.id}
+                    href={link.href}
+                    onClick={() => onOpenChange(false)}
+                    className="group flex w-full items-center justify-between px-6 py-3 text-left transition-colors hover:bg-gray-50"
+                  >
+                    <span className="text-[15px] font-medium text-gray-700 group-hover:text-blue-600">
+                      {t(link.labelKey)}
+                    </span>
+                    <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-blue-600" />
+                  </Link>
+                ))
+              : categories.map((cat) => (
+                  <Link
+                    key={cat._id}
+                    href={categoryPath(cat.slug)}
+                    onClick={() => onOpenChange(false)}
+                    className="group flex w-full items-center justify-between px-6 py-3 text-left transition-colors hover:bg-gray-50"
+                  >
+                    <span className="text-[15px] font-medium text-gray-700 group-hover:text-blue-600">
+                      {cat.name}
+                    </span>
+                    <ChevronRight className="h-4 w-4 text-gray-300 group-hover:text-blue-600" />
+                  </Link>
+                ))}
           </nav>
 
           <div className="mt-8 border-t border-gray-200 px-6 pt-6">

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import type { ArticleListItem } from "@/lib/types";
+import { newsArticlePath } from "@/lib/utils/slug";
 
 export function BreakingNewsTicker({ articles }: { articles: ArticleListItem[] }) {
   if (!articles.length) return null;
@@ -17,7 +18,7 @@ export function BreakingNewsTicker({ articles }: { articles: ArticleListItem[] }
             {[...articles, ...articles].map((article, i) => (
               <Link
                 key={`${article._id}-${i}`}
-                href={`/news/${article.slug}`}
+                href={newsArticlePath(article.slug)}
                 className="text-sm font-medium text-[#0F172A] hover:text-[#2563EB] dark:text-foreground"
               >
                 {article.title}

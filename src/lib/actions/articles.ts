@@ -9,6 +9,7 @@ import { Article } from "@/lib/models/Article";
 import { Category } from "@/lib/models/Category";
 import { sanitizeArticleContent } from "@/lib/sanitize";
 import { articleSchema } from "@/lib/validation/schemas";
+import { newsArticlePath } from "@/lib/utils/slug";
 
 export type ActionResult = { success: boolean; message?: string; id?: string };
 
@@ -16,7 +17,7 @@ async function revalidatePublicPaths(categoryId: string | null | undefined, slug
   revalidatePath("/");
   revalidatePath("/today");
   revalidatePath("/search");
-  revalidatePath(`/news/${slug}`);
+  revalidatePath(newsArticlePath(slug));
   if (!categoryId) return;
   const cat = await Category.findById(categoryId).select("slug").lean();
   if (cat?.slug) {

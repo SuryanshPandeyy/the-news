@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { saveArticle } from "@/lib/actions/articles";
-import { slugify } from "@/lib/utils/slug";
+import { slugFromTitle, slugify } from "@/lib/utils/slug";
 import type { ArticleDetail, ArticleImageItem } from "@/lib/types";
 import { AdminLabel } from "@/components/admin/admin-label";
 import { useLocale } from "@/components/providers/locale-provider";
@@ -90,6 +90,12 @@ export function ArticleForm({
   const [category, setCategory] = useState(article?.category?._id ?? "");
   const [author, setAuthor] = useState(article?.author ?? defaultAuthor);
   const [images, setImages] = useState<ArticleImageItem[]>(() => initialImages(article));
+  const [bannerImage, setBannerImage] = useState(article?.bannerImage ?? "");
+  const [bannerImagePublicId, setBannerImagePublicId] = useState(
+    article?.bannerImagePublicId ?? "",
+  );
+  const [bannerUploading, setBannerUploading] = useState(false);
+  const [bannerProgress, setBannerProgress] = useState(0);
   const [pendingUploads, setPendingUploads] = useState<PendingUpload[]>([]);
   const pendingUploadsRef = useRef(pendingUploads);
   pendingUploadsRef.current = pendingUploads;
@@ -170,6 +176,29 @@ export function ArticleForm({
     }
   }
 
+  async function uploadBannerFile(fileList: FileList | null) {
+    const file = fileList?.[0];
+    if (!file) return;
+    setBannerUploading(true);
+    setBannerProgress(0);
+    try {
+      const result = await uploadFileWithProgress(file, setBannerProgress);
+      setBannerImage(result.url);
+      setBannerImagePublicId(result.publicId ?? "");
+      toast.success("Header banner uploaded");
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Upload failed");
+    } finally {
+      setBannerUploading(false);
+      setBannerProgress(0);
+    }
+  }
+
+  function clearBannerImage() {
+    setBannerImage("");
+    setBannerImagePublicId("");
+  }
+
   function removeImage(index: number) {
     setImages((prev) => prev.filter((_, i) => i !== index));
   }
@@ -186,15 +215,21 @@ export function ArticleForm({
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
+    const resolvedSlug = slugFromTitle(title, slugManual ? slug : undefined);
+    if (!slugManual || !slug.trim()) {
+      setSlug(resolvedSlug);
+    }
     setLoading(true);
     const result = await saveArticle(
       {
         title,
-        slug: slug.trim() || undefined,
+        slug: resolvedSlug,
         content,
         category: category || undefined,
         author,
         images,
+        bannerImage: bannerImage.trim() || undefined,
+        bannerImagePublicId: bannerImagePublicId.trim() || undefined,
         status,
         featured,
         breaking,
@@ -254,18 +289,63 @@ export function ArticleForm({
           <CardDescription>{t("imagesDesc")}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <AdminLabel>{t("uploadImages")}</AdminLabel>
-            <Input
-              type="file"
-              accept="image/*"
-              multiple
-              disabled={uploading}
-              onChange={(e) => {
-                void uploadFiles(e.target.files);
-                e.target.value = "";
-              }}
-            />
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="space-y-2">
+              <AdminLabel>{t("uploadImages")}</AdminLabel>
+              <Input
+                type="file"
+                accept="image/*"
+                multiple
+                disabled={uploading || bannerUploading}
+                onChange={(e) => {
+                  void uploadFiles(e.target.files);
+                  e.target.value = "";
+                }}
+              />
+            </div>
+            <div className="space-y-2">
+              <AdminLabel>{t("headerBanner")}</AdminLabel>
+              <p className="text-xs text-muted-foreground">{t("headerBannerDesc")}</p>
+              <Input
+                type="file"
+                accept="image/*"
+                disabled={uploading || bannerUploading}
+                onChange={(e) => {
+                  void uploadBannerFile(e.target.files);
+                  e.target.value = "";
+                }}
+              />
+              {bannerUploading && (
+                <div className="space-y-1">
+                  <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full bg-primary transition-[width]"
+                      style={{ width: `${bannerProgress}%` }}
+                    />
+                  </div>
+                  <p className="text-right text-xs tabular-nums text-muted-foreground">
+                    {bannerProgress}%
+                  </p>
+                </div>
+              )}
+              {bannerImage && !bannerUploading && (
+                <div className="relative mt-2 overflow-hidden rounded-md border">
+                  <div className="relative aspect-[21/9] w-full">
+                    <img src={bannerImage} alt="" className="h-full w-full object-cover" />
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="icon"
+                      className="absolute right-2 top-2 h-8 w-8 rounded-full bg-background/90 shadow-sm hover:bg-destructive hover:text-destructive-foreground"
+                      aria-label={t("remove")}
+                      onClick={clearBannerImage}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
           {(pendingUploads.length > 0 || images.length > 0) && (
             <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -450,7 +530,7 @@ export function ArticleForm({
         </div>
       </details>
 
-      <Button type="submit" disabled={loading || uploading} size="lg">
+      <Button type="submit" disabled={loading || uploading || bannerUploading} size="lg">
         {loading ? t("saving") : isNew ? t("publishStory") : t("updateStory")}
       </Button>
     </form>

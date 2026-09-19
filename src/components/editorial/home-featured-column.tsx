@@ -7,6 +7,7 @@ import { ContinueReading } from "@/components/editorial/continue-reading";
 import { SectionHeader } from "@/components/editorial/section-header";
 import { useLocale } from "@/components/providers/locale-provider";
 import type { ArticleListItem } from "@/lib/types";
+import { categoryPath, newsArticlePath } from "@/lib/utils/slug";
 
 export function HomeFeaturedColumn({
   article,
@@ -29,13 +30,13 @@ export function HomeFeaturedColumn({
   }
 
   const date = article.publishedAt ?? article.createdAt;
-  const href = `/news/${article.slug}`;
+  const href = newsArticlePath(article.slug);
 
   return (
     <div className="col-span-1 flex flex-col md:col-span-12 lg:col-span-4 lg:border-r lg:border-gray-200 lg:pr-8">
       <SectionHeader
         title={sectionTitle}
-        href={article.category?.slug ? `/category/${article.category.slug}` : undefined}
+        href={article.category?.slug ? categoryPath(article.category.slug) : undefined}
         links={[
           { label: t("latest"), href: "/today", active: true },
           { label: t("trending"), href: "/search?q=trending" },
@@ -78,7 +79,7 @@ export function HomeFeaturedColumn({
             {thumbnails.slice(0, 3).map((thumb, i) => (
               <Link
                 key={thumb._id}
-                href={`/news/${thumb.slug}`}
+                href={newsArticlePath(thumb.slug)}
                 className="relative aspect-[16/9] w-1/3 overflow-hidden bg-gray-200"
               >
                 <ArticleImage

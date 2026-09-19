@@ -2,6 +2,7 @@ import { connectDB } from "@/lib/db/connect";
 import { Article } from "@/lib/models/Article";
 import { getTodayRangeInUtc } from "@/lib/timezone";
 import type { ArticleDetail, ArticleListItem, PaginatedResult } from "@/lib/types";
+import { slugLookupCandidates } from "@/lib/utils/slug";
 
 const listProjection = {
   title: 1,
@@ -10,6 +11,7 @@ const listProjection = {
   subtitle: 1,
   featuredImage: 1,
   featuredImageAlt: 1,
+  bannerImage: 1,
   sectionLabel: 1,
   author: 1,
   authorRole: 1,
@@ -36,6 +38,7 @@ function serializeArticle(doc: Record<string, unknown>): ArticleListItem {
     subtitle: doc.subtitle as string | undefined,
     featuredImage: doc.featuredImage as string | undefined,
     featuredImageAlt: doc.featuredImageAlt as string | undefined,
+    bannerImage: doc.bannerImage as string | undefined,
     sectionLabel: doc.sectionLabel as string | undefined,
     author: doc.author as string | undefined,
     authorRole: doc.authorRole as string | undefined,
@@ -110,9 +113,16 @@ export async function getArticlesPaginated(
 
   if (categorySlug) {
     const { Category } = await import("@/lib/models/Category");
-    const cat = await Category.findOne({ slug: categorySlug }).select("_id").lean();
-    if (cat) filter.category = cat._id;
-    else return { items: [], total: 0, page, pageSize, totalPages: 0 };
+    let categoryId: string | null = null;
+    for (const candidate of slugLookupCandidates(categorySlug)) {
+      const cat = await Category.findOne({ slug: candidate }).select("_id").lean();
+      if (cat) {
+        categoryId = String(cat._id);
+        break;
+      }
+    }
+    if (!categoryId) return { items: [], total: 0, page, pageSize, totalPages: 0 };
+    filter.category = categoryId;
   }
 
   if (search?.trim()) {
@@ -141,43 +151,71 @@ export async function getArticlesPaginated(
 }
 
 export async function getArticleBySlug(
-  slug: string,
+  rawSlug: string,
   admin = false,
 ): Promise<ArticleDetail | null> {
   await connectDB();
-  const filter: Record<string, unknown> = { slug };
-  if (!admin) filter.status = "published";
+  for (const slug of slugLookupCandidates(rawSlug)) {
+    const filter: Record<string, unknown> = { slug };
+    if (!admin) filter.status = "published";
 
-  const doc = await Article.findOne(filter)
+    const doc = await Article.findOne(filter)
+      .populate("category", "name slug description image")
+      .lean();
+
+    if (!doc) continue;
+
+    const base = serializeArticle(doc as Record<string, unknown>);
+    const images = (doc.images as { url: string; publicId?: string }[] | undefined)?.map(
+      (img) => ({
+        url: img.url,
+        publicId: img.publicId,
+      }),
+    );
+    const gallery =
+      images && images.length > 0
+        ? images
+        : doc.featuredImage
+          ? [{ url: doc.featuredImage as string, publicId: doc.featuredImagePublicId as string | undefined }]
+          : [];
+
+    return {
+      ...base,
+      content: doc.content,
+    featuredImagePublicId: doc.featuredImagePublicId ?? undefined,
+    bannerImagePublicId: doc.bannerImagePublicId ?? undefined,
+    images: gallery,
+      imageCaption: doc.imageCaption ?? undefined,
+      seoTitle: doc.seoTitle ?? undefined,
+      seoDescription: doc.seoDescription ?? undefined,
+      seoKeywords: doc.seoKeywords ?? undefined,
+    };
+  }
+
+  return null;
+}
+
+export async function getHomeHeaderBannerSlides(limit = 5): Promise<ArticleListItem[]> {
+  await connectDB();
+  const bannerDocs = await Article.find({
+    status: "published",
+    bannerImage: { $exists: true, $nin: [null, ""] },
+  })
+    .select(listProjection)
     .populate("category", "name slug description image")
+    .sort({ publishedAt: -1, createdAt: -1 })
+    .limit(limit)
     .lean();
 
-  if (!doc) return null;
+  const items = bannerDocs.map((d) => serializeArticle(d as Record<string, unknown>));
+  if (items.length > 0) return items;
 
-  const base = serializeArticle(doc as Record<string, unknown>);
-  const images = (doc.images as { url: string; publicId?: string }[] | undefined)?.map(
-    (img) => ({
-      url: img.url,
-      publicId: img.publicId,
-    }),
-  );
-  const gallery =
-    images && images.length > 0
-      ? images
-      : doc.featuredImage
-        ? [{ url: doc.featuredImage as string, publicId: doc.featuredImagePublicId as string | undefined }]
-        : [];
-
-  return {
-    ...base,
-    content: doc.content,
-    featuredImagePublicId: doc.featuredImagePublicId ?? undefined,
-    images: gallery,
-    imageCaption: doc.imageCaption ?? undefined,
-    seoTitle: doc.seoTitle ?? undefined,
-    seoDescription: doc.seoDescription ?? undefined,
-    seoKeywords: doc.seoKeywords ?? undefined,
-  };
+  const fallback = await getArticlesPaginated({
+    page: 1,
+    pageSize: limit,
+    status: "published",
+  });
+  return fallback.items;
 }
 
 export async function getBreakingArticles(limit = 8): Promise<ArticleListItem[]> {
@@ -190,9 +228,15 @@ export async function getBreakingArticles(limit = 8): Promise<ArticleListItem[]>
   return result.items;
 }
 
-export async function incrementArticleViews(slug: string) {
+export async function incrementArticleViews(slugParam: string) {
   await connectDB();
-  await Article.updateOne({ slug, status: "published" }, { $inc: { views: 1 } });
+  for (const slug of slugLookupCandidates(slugParam)) {
+    const result = await Article.updateOne(
+      { slug, status: "published" },
+      { $inc: { views: 1 } },
+    );
+    if (result.matchedCount > 0) return;
+  }
 }
 
 export async function getRelatedArticles(
@@ -235,8 +279,15 @@ export async function getEditorsPickArticles(
   };
   if (categorySlug) {
     const { Category } = await import("@/lib/models/Category");
-    const cat = await Category.findOne({ slug: categorySlug }).select("_id").lean();
-    if (cat) filter.category = cat._id;
+    let categoryId: string | null = null;
+    for (const candidate of slugLookupCandidates(categorySlug)) {
+      const cat = await Category.findOne({ slug: candidate }).select("_id").lean();
+      if (cat) {
+        categoryId = String(cat._id);
+        break;
+      }
+    }
+    if (categoryId) filter.category = categoryId;
   }
   const docs = await Article.find(filter)
     .select(listProjection)

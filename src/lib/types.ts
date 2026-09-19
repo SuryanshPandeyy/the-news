@@ -19,6 +19,7 @@ export type ArticleListItem = {
   subtitle?: string;
   featuredImage?: string;
   featuredImageAlt?: string;
+  bannerImage?: string;
   author?: string;
   authorRole?: string;
   sectionLabel?: string;
@@ -38,6 +39,7 @@ export type ArticleListItem = {
 export type ArticleDetail = ArticleListItem & {
   content: string;
   featuredImagePublicId?: string;
+  bannerImagePublicId?: string;
   images?: ArticleImageItem[];
   imageCaption?: string;
   seoTitle?: string;

@@ -5,10 +5,11 @@ import { HomeLatestColumn } from "@/components/editorial/home-latest-column";
 import { HomeMostReadColumn } from "@/components/editorial/home-most-read-column";
 import { ArticleDateLabel } from "@/components/editorial/category-meta";
 import { isDbConfigured } from "@/lib/db/connect";
-import { getArticlesPaginated, getHomeFeed } from "@/lib/queries/articles";
+import { getHomeFeed, getHomeHeaderBannerSlides } from "@/lib/queries/articles";
 import { getSettings } from "@/lib/models/Settings";
 import { getLocale } from "@/lib/i18n/locale";
 import { t } from "@/lib/i18n/messages";
+import { newsArticlePath } from "@/lib/utils/slug";
 
 export const dynamic = "force-dynamic";
 
@@ -40,18 +41,18 @@ export default async function HomePage() {
     );
   }
 
-  const [feed, latestForSlider, locale] = await Promise.all([
+  const [feed, headerSlides, locale] = await Promise.all([
     getHomeFeed(),
-    getArticlesPaginated({ page: 1, pageSize: 5, status: "published" }),
+    getHomeHeaderBannerSlides(5),
     getLocale(),
   ]);
 
-  const heroSlides = latestForSlider.items.map((article) => ({
+  const heroSlides = headerSlides.map((article) => ({
     _id: article._id,
     slug: article.slug,
     title: article.title,
     excerpt: article.excerpt,
-    featuredImage: article.featuredImage,
+    image: article.bannerImage ?? article.featuredImage,
     categoryName: article.category?.name,
   }));
 
@@ -77,7 +78,7 @@ export default async function HomePage() {
             <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
               {feed.more.map((article) => (
                 <article key={article._id} className="group flex flex-col">
-                  <Link href={`/news/${article.slug}`}>
+                  <Link href={newsArticlePath(article.slug)}>
                     <h3 className="text-[20px] font-bold leading-tight transition-colors group-hover:text-blue-600">
                       {article.title}
                     </h3>

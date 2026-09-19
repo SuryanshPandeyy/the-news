@@ -18,6 +18,7 @@ import { getSiteUrl } from "@/lib/site";
 import { getReadingTimeMinutes } from "@/lib/utils/reading-time";
 import { getLocale } from "@/lib/i18n/locale";
 import { t } from "@/lib/i18n/messages";
+import { newsArticlePath } from "@/lib/utils/slug";
 
 export const dynamic = "force-dynamic";
 
@@ -51,7 +52,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
     getLocale(),
   ]);
 
-  const url = `${getSiteUrl()}/news/${article.slug}`;
+  const url = `${getSiteUrl()}${newsArticlePath(article.slug)}`;
   const published = article.publishedAt ?? article.createdAt;
   const readingTime = getReadingTimeMinutes(article.content);
   const heroImage = article.images?.[0]?.url ?? article.featuredImage;
@@ -149,7 +150,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
             {related.map((a) => (
               <li key={a._id}>
                 <Link
-                  href={`/news/${a.slug}`}
+                  href={newsArticlePath(a.slug)}
                   className="font-bold text-[15px] hover:text-blue-700"
                 >
                   {a.title}

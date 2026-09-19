@@ -3,7 +3,7 @@ import mongoose, { Schema, type InferSchemaType, type Model } from "mongoose";
 const articleSchema = new Schema(
   {
     title: { type: String, required: true, trim: true },
-    slug: { type: String, required: true, unique: true, lowercase: true, trim: true },
+    slug: { type: String, required: true, unique: true, trim: true },
     excerpt: { type: String, trim: true },
     /** Large dek under the headline on the article page */
     subtitle: { type: String, trim: true },
@@ -11,6 +11,9 @@ const articleSchema = new Schema(
     featuredImage: { type: String },
     featuredImageAlt: { type: String, trim: true },
     featuredImagePublicId: { type: String },
+    /** Optional wide image for home header banner slider only */
+    bannerImage: { type: String },
+    bannerImagePublicId: { type: String },
     /** Gallery images; first item mirrors featuredImage on save */
     images: [
       {

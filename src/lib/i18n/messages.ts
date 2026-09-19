@@ -76,6 +76,11 @@ export const messages = {
     imagesDesc:
       "Upload one or more photos. The first image is the hero; the rest appear in a gallery on the article page.",
     uploadImages: "Upload images",
+    headerBanner: "Header banner (optional)",
+    headerBannerDesc: "Wide image for the home page banner under the header only—not the article hero.",
+    uploadHeaderBanner: "Upload header banner",
+    trendingPageDesc: "Stories marked as trending in the editor.",
+    breakingPageDesc: "Stories marked as breaking in the editor.",
     hero: "Hero",
     remove: "Remove",
     up: "Up",
@@ -189,6 +194,11 @@ export const messages = {
     imagesDesc:
       "एक या अधिक फ़ोटो अपलोड करें। पहला चित्र हीरो है; बाकी लेख पृष्ठ पर गैलरी में दिखेंगे।",
     uploadImages: "चित्र अपलोड करें",
+    headerBanner: "हेडर बैनर (वैकल्पिक)",
+    headerBannerDesc: "केवल होम पर हेडर के नीचे बैनर में दिखेगा—लेख वाली हीरो छवि नहीं।",
+    uploadHeaderBanner: "हेडर बैनर अपलोड करें",
+    trendingPageDesc: "संपादक में ट्रेंडिंग चिह्नित खबरें।",
+    breakingPageDesc: "संपादक में ब्रेकिंग चिह्नित खबरें।",
     hero: "हीरो",
     remove: "हटाएँ",
     up: "ऊपर",

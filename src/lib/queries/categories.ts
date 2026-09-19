@@ -1,6 +1,7 @@
 import { connectDB } from "@/lib/db/connect";
 import { Category } from "@/lib/models/Category";
 import type { CategorySummary } from "@/lib/types";
+import { slugLookupCandidates } from "@/lib/utils/slug";
 
 function serialize(doc: Record<string, unknown>): CategorySummary {
   return {
@@ -33,15 +34,18 @@ export async function getAllCategories(admin = false): Promise<
   }));
 }
 
-export async function getCategoryBySlug(slug: string) {
+export async function getCategoryBySlug(rawSlug: string) {
   await connectDB();
-  const doc = await Category.findOne({ slug, isActive: true }).lean();
-  if (!doc) return null;
-  return {
-    ...serialize(doc as Record<string, unknown>),
-    isActive: Boolean(doc.isActive),
-    displayOrder: doc.displayOrder ?? 0,
-  };
+  for (const slug of slugLookupCandidates(rawSlug)) {
+    const doc = await Category.findOne({ slug, isActive: true }).lean();
+    if (!doc) continue;
+    return {
+      ...serialize(doc as Record<string, unknown>),
+      isActive: Boolean(doc.isActive),
+      displayOrder: doc.displayOrder ?? 0,
+    };
+  }
+  return null;
 }
 
 export async function getCategoryArticlesSection(
