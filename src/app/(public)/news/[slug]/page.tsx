@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { ArticleBody } from "@/components/news/article-body";
 import { ArticleImage } from "@/components/editorial/article-image";
-import { ArticleImageGallery } from "@/components/editorial/article-image-gallery";
+import { ArticlePageMedia } from "@/components/editorial/article-page-media";
 import { ArticleDateLabel, CategoryBadge } from "@/components/editorial/category-meta";
 import { HomeMostReadColumn } from "@/components/editorial/home-most-read-column";
 import { SocialShare } from "@/components/social/social-share";
@@ -56,6 +56,13 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   const published = article.publishedAt ?? article.createdAt;
   const readingTime = getReadingTimeMinutes(article.content);
   const heroImage = article.images?.[0]?.url ?? article.featuredImage;
+
+  const mediaImages =
+    article.images && article.images.length > 0
+      ? article.images
+      : heroImage
+        ? [{ url: heroImage }]
+        : [];
 
   const jsonLd = {
     "@context": "https://schema.org",
@@ -118,24 +125,12 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
         </div>
       </header>
 
-      {heroImage && (
-        <figure className="relative mb-10 aspect-[16/9] w-full overflow-hidden bg-gray-100 md:aspect-[2/1]">
-          <ArticleImage
-            src={heroImage}
-            alt={article.featuredImageAlt || article.title}
-            seed={article._id}
-            fill
-            priority
-            sizes="(max-width: 896px) 100vw, 896px"
-          />
-        </figure>
-      )}
-
-      {article.images && article.images.length > 0 && (
-        <ArticleImageGallery
-          images={article.images}
+      {mediaImages.length > 0 && (
+        <ArticlePageMedia
+          images={mediaImages}
           title={article.title}
           articleId={article._id}
+          heroAlt={article.featuredImageAlt || article.title}
         />
       )}
 
