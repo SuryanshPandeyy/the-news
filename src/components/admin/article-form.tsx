@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { saveArticle } from "@/lib/actions/articles";
-import { slugFromTitle, slugify } from "@/lib/utils/slug";
+import { latinSlugFromTitle } from "@/lib/utils/slug";
 import type { ArticleDetail, ArticleImageItem } from "@/lib/types";
 import { AdminLabel } from "@/components/admin/admin-label";
 import { useLocale } from "@/components/providers/locale-provider";
@@ -116,7 +116,7 @@ export function ArticleForm({
   function onTitleChange(value: string) {
     setTitle(value);
     if (!slugManual) {
-      setSlug(slugify(value));
+      setSlug(latinSlugFromTitle(value) ?? "");
     }
   }
 
@@ -215,15 +215,15 @@ export function ArticleForm({
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
-    const resolvedSlug = slugFromTitle(title, slugManual ? slug : undefined);
-    if (!slugManual || !slug.trim()) {
-      setSlug(resolvedSlug);
+    const latinSlug = latinSlugFromTitle(title, slugManual ? slug : undefined);
+    if (!slugManual && latinSlug) {
+      setSlug(latinSlug);
     }
     setLoading(true);
     const result = await saveArticle(
       {
         title,
-        slug: resolvedSlug,
+        slug: latinSlug ?? (slugManual ? slug : undefined),
         content,
         category: category || undefined,
         author,
@@ -244,6 +244,9 @@ export function ArticleForm({
     if (!result.success) {
       toast.error(result.message);
       return;
+    }
+    if (result.id && !latinSlug) {
+      setSlug(result.id);
     }
     toast.success(result.message);
     router.push("/admin/news");
@@ -279,6 +282,7 @@ export function ArticleForm({
               }}
               placeholder={t("slugPlaceholder")}
             />
+            <p className="text-xs text-muted-foreground">{t("slugAutoIdHint")}</p>
           </div>
         </CardContent>
       </Card>

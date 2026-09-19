@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth-helpers";
+import { resolveArticleSlug } from "@/lib/articles/resolve-slug";
 import { excerptFromContent } from "@/lib/articles/excerpt";
 import { articleInputToDb } from "@/lib/articles/map-payload";
 import { connectDB } from "@/lib/db/connect";
@@ -9,7 +10,7 @@ import { Article } from "@/lib/models/Article";
 import { Category } from "@/lib/models/Category";
 import { sanitizeArticleContent } from "@/lib/sanitize";
 import { articleSchema } from "@/lib/validation/schemas";
-import { newsArticlePath } from "@/lib/utils/slug";
+import { latinSlugFromTitle, newsArticlePath } from "@/lib/utils/slug";
 
 export type ActionResult = { success: boolean; message?: string; id?: string };
 
@@ -35,29 +36,39 @@ export async function saveArticle(
     await connectDB();
 
     const mapped = articleInputToDb(parsed);
+    const { slug, presetId } = resolveArticleSlug(parsed.title, parsed.slug, id);
     const payload = {
       ...mapped,
+      slug,
       content: sanitizeArticleContent(parsed.content),
     };
 
     if (id) {
       const existing = await Article.findById(id).select("slug category").lean();
+      if (!existing) return { success: false, message: "Not found" };
       await Article.findByIdAndUpdate(id, payload);
-      if (existing?.category) {
+      if (existing.slug !== slug) {
+        await revalidatePublicPaths(mapped.category, existing.slug);
+      }
+      if (existing.category) {
         await revalidatePublicPaths(String(existing.category), existing.slug);
       }
-      await revalidatePublicPaths(mapped.category, mapped.slug);
+      await revalidatePublicPaths(mapped.category, slug);
       revalidatePath("/admin/news");
       return { success: true, id, message: "Article updated" };
     }
 
-    const slugTaken = await Article.findOne({ slug: mapped.slug });
-    if (slugTaken) {
-      return { success: false, message: "Slug already exists" };
+    if (latinSlugFromTitle(parsed.title, parsed.slug)) {
+      const slugTaken = await Article.findOne({ slug });
+      if (slugTaken) {
+        return { success: false, message: "Slug already exists" };
+      }
     }
 
-    const created = await Article.create(payload);
-    await revalidatePublicPaths(mapped.category, mapped.slug);
+    const created = presetId
+      ? await Article.create({ _id: presetId, ...payload })
+      : await Article.create(payload);
+    await revalidatePublicPaths(mapped.category, slug);
     revalidatePath("/admin/news");
     return { success: true, id: String(created._id), message: "Article created" };
   } catch (e) {
@@ -90,32 +101,65 @@ export async function duplicateArticle(id: string): Promise<ActionResult> {
     const article = await Article.findById(id).lean();
     if (!article) return { success: false, message: "Not found" };
 
-    const baseSlug = `${article.slug}-copy`;
-    let slug = baseSlug;
-    let i = 1;
-    while (await Article.findOne({ slug })) {
-      slug = `${baseSlug}-${i}`;
-      i += 1;
+    const copyTitle = `${article.title} (Copy)`;
+    const latin = latinSlugFromTitle(article.title);
+    let slug: string;
+    let presetId: import("mongoose").Types.ObjectId | undefined;
+
+    if (latin) {
+      const baseSlug = `${latin}-copy`;
+      slug = baseSlug;
+      let i = 1;
+      while (await Article.findOne({ slug })) {
+        slug = `${baseSlug}-${i}`;
+        i += 1;
+      }
+    } else {
+      ({ slug, presetId } = resolveArticleSlug(copyTitle, undefined));
     }
 
-    const created = await Article.create({
-      title: `${article.title} (Copy)`,
-      slug,
-      excerpt: excerptFromContent(article.content),
-      subtitle: article.subtitle,
-      content: article.content,
-      featuredImage: article.featuredImage,
-      featuredImagePublicId: article.featuredImagePublicId,
-      images: article.images,
-      category: article.category,
-      author: article.author,
-      status: "draft",
-      featured: article.featured,
-      breaking: false,
-      trending: article.trending,
-      editorsPick: article.editorsPick,
-      views: 0,
-    });
+    const created = presetId
+      ? await Article.create({
+          _id: presetId,
+          title: copyTitle,
+          slug,
+          excerpt: excerptFromContent(article.content),
+          subtitle: article.subtitle,
+          content: article.content,
+          featuredImage: article.featuredImage,
+          featuredImagePublicId: article.featuredImagePublicId,
+          bannerImage: article.bannerImage,
+          bannerImagePublicId: article.bannerImagePublicId,
+          images: article.images,
+          category: article.category,
+          author: article.author,
+          status: "draft",
+          featured: article.featured,
+          breaking: false,
+          trending: article.trending,
+          editorsPick: article.editorsPick,
+          views: 0,
+        })
+      : await Article.create({
+          title: copyTitle,
+          slug,
+          excerpt: excerptFromContent(article.content),
+          subtitle: article.subtitle,
+          content: article.content,
+          featuredImage: article.featuredImage,
+          featuredImagePublicId: article.featuredImagePublicId,
+          bannerImage: article.bannerImage,
+          bannerImagePublicId: article.bannerImagePublicId,
+          images: article.images,
+          category: article.category,
+          author: article.author,
+          status: "draft",
+          featured: article.featured,
+          breaking: false,
+          trending: article.trending,
+          editorsPick: article.editorsPick,
+          views: 0,
+        });
 
     revalidatePath("/admin/news");
     return { success: true, id: String(created._id) };

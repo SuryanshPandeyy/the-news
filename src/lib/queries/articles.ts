@@ -2,7 +2,8 @@ import { connectDB } from "@/lib/db/connect";
 import { Article } from "@/lib/models/Article";
 import { getTodayRangeInUtc } from "@/lib/timezone";
 import type { ArticleDetail, ArticleListItem, PaginatedResult } from "@/lib/types";
-import { slugLookupCandidates } from "@/lib/utils/slug";
+import { isObjectIdSlug, normalizeSlug, slugLookupCandidates } from "@/lib/utils/slug";
+import mongoose from "mongoose";
 
 const listProjection = {
   title: 1,
@@ -150,14 +151,56 @@ export async function getArticlesPaginated(
   };
 }
 
+function articleDetailFromLeanDoc(doc: Record<string, unknown>): ArticleDetail {
+  const base = serializeArticle(doc);
+  const images = (doc.images as { url: string; publicId?: string }[] | undefined)?.map(
+    (img) => ({
+      url: img.url,
+      publicId: img.publicId,
+    }),
+  );
+  const gallery =
+    images && images.length > 0
+      ? images
+      : doc.featuredImage
+        ? [{ url: doc.featuredImage as string, publicId: doc.featuredImagePublicId as string | undefined }]
+        : [];
+
+  return {
+    ...base,
+    content: doc.content as string,
+    featuredImagePublicId: doc.featuredImagePublicId as string | undefined,
+    bannerImagePublicId: doc.bannerImagePublicId as string | undefined,
+    images: gallery,
+    imageCaption: doc.imageCaption as string | undefined,
+    seoTitle: doc.seoTitle as string | undefined,
+    seoDescription: doc.seoDescription as string | undefined,
+    seoKeywords: doc.seoKeywords as string[] | undefined,
+  };
+}
+
 export async function getArticleBySlug(
   rawSlug: string,
   admin = false,
 ): Promise<ArticleDetail | null> {
   await connectDB();
+  const statusFilter: Record<string, unknown> = admin ? {} : { status: "published" };
+
+  const normalized = normalizeSlug(rawSlug);
+  if (isObjectIdSlug(normalized) && mongoose.Types.ObjectId.isValid(normalized)) {
+    const oid = new mongoose.Types.ObjectId(normalized);
+    if (String(oid) === normalized) {
+      for (const filter of [{ _id: oid, ...statusFilter }, { slug: normalized, ...statusFilter }]) {
+        const doc = await Article.findOne(filter)
+          .populate("category", "name slug description image")
+          .lean();
+        if (doc) return articleDetailFromLeanDoc(doc as Record<string, unknown>);
+      }
+    }
+  }
+
   for (const slug of slugLookupCandidates(rawSlug)) {
-    const filter: Record<string, unknown> = { slug };
-    if (!admin) filter.status = "published";
+    const filter: Record<string, unknown> = { slug, ...statusFilter };
 
     const doc = await Article.findOne(filter)
       .populate("category", "name slug description image")
@@ -165,31 +208,7 @@ export async function getArticleBySlug(
 
     if (!doc) continue;
 
-    const base = serializeArticle(doc as Record<string, unknown>);
-    const images = (doc.images as { url: string; publicId?: string }[] | undefined)?.map(
-      (img) => ({
-        url: img.url,
-        publicId: img.publicId,
-      }),
-    );
-    const gallery =
-      images && images.length > 0
-        ? images
-        : doc.featuredImage
-          ? [{ url: doc.featuredImage as string, publicId: doc.featuredImagePublicId as string | undefined }]
-          : [];
-
-    return {
-      ...base,
-      content: doc.content,
-    featuredImagePublicId: doc.featuredImagePublicId ?? undefined,
-    bannerImagePublicId: doc.bannerImagePublicId ?? undefined,
-    images: gallery,
-      imageCaption: doc.imageCaption ?? undefined,
-      seoTitle: doc.seoTitle ?? undefined,
-      seoDescription: doc.seoDescription ?? undefined,
-      seoKeywords: doc.seoKeywords ?? undefined,
-    };
+    return articleDetailFromLeanDoc(doc as Record<string, unknown>);
   }
 
   return null;
@@ -230,6 +249,19 @@ export async function getBreakingArticles(limit = 8): Promise<ArticleListItem[]>
 
 export async function incrementArticleViews(slugParam: string) {
   await connectDB();
+  const normalized = normalizeSlug(slugParam);
+  if (isObjectIdSlug(normalized) && mongoose.Types.ObjectId.isValid(normalized)) {
+    const oid = new mongoose.Types.ObjectId(normalized);
+    if (String(oid) === normalized) {
+      for (const filter of [
+        { _id: oid, status: "published" as const },
+        { slug: normalized, status: "published" as const },
+      ]) {
+        const result = await Article.updateOne(filter, { $inc: { views: 1 } });
+        if (result.matchedCount > 0) return;
+      }
+    }
+  }
   for (const slug of slugLookupCandidates(slugParam)) {
     const result = await Article.updateOne(
       { slug, status: "published" },

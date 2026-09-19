@@ -1,6 +1,5 @@
 import type { z } from "zod";
 import type { articleSchema } from "@/lib/validation/schemas";
-import { slugFromTitle } from "@/lib/utils/slug";
 import { excerptFromContent } from "@/lib/articles/excerpt";
 
 type ArticleInput = z.infer<typeof articleSchema>;
@@ -12,14 +11,12 @@ function opt(value?: string | null): string | undefined {
 
 /** Maps validated admin form input to MongoDB article fields (frontend-compatible). */
 export function articleInputToDb(parsed: ArticleInput) {
-  const slug = slugFromTitle(parsed.title, parsed.slug);
   const images = (parsed.images ?? []).filter((img) => img.url?.trim());
   const first = images[0];
   const status = parsed.status ?? "published";
 
   return {
     title: parsed.title.trim(),
-    slug,
     excerpt: excerptFromContent(parsed.content),
     content: parsed.content,
     images,

@@ -30,18 +30,43 @@ export function normalizeManualSlug(text: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
-/** Slug for articles: from optional manual input, else title; never empty. */
-export function slugFromTitle(title: string, manualSlug?: string): string {
+/** English-style URL slug (a-z, 0-9, dashes). */
+export function isLatinUrlSlug(slug: string): boolean {
+  return /^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug);
+}
+
+export function isObjectIdSlug(slug: string): boolean {
+  return /^[a-f0-9]{24}$/i.test(slug);
+}
+
+/**
+ * Latin slug from title or manual English slug.
+ * Returns null for Hindi / non-Latin titles → caller should use document `_id` as slug.
+ */
+export function latinSlugFromTitle(title: string, manualSlug?: string): string | null {
   const manual = manualSlug?.trim();
   if (manual) {
-    let slug = normalizeManualSlug(manual);
-    if (!slug) slug = slugify(title);
-    if (!slug) slug = `story-${Date.now()}`;
-    return slug;
+    const normalized = normalizeManualSlug(manual);
+    if (normalized && isLatinUrlSlug(normalized)) return normalized;
+    if (normalized) return null;
   }
-  let slug = slugify(title);
-  if (!slug) slug = `story-${Date.now()}`;
-  return slug;
+  const fromTitle = slugify(title);
+  if (fromTitle && isLatinUrlSlug(fromTitle)) return fromTitle;
+  return null;
+}
+
+/** Slug for articles: from optional manual input, else title; never empty. */
+export function slugFromTitle(title: string, manualSlug?: string): string {
+  const latin = latinSlugFromTitle(title, manualSlug);
+  if (latin) return latin;
+  const manual = manualSlug?.trim();
+  if (manual) {
+    const normalized = normalizeManualSlug(manual);
+    if (normalized) return normalized;
+  }
+  const fromTitle = slugify(title);
+  if (fromTitle) return fromTitle;
+  return `story-${Date.now()}`;
 }
 
 /** Try several normalized forms when resolving /news/[slug] from the URL. */
