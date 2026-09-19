@@ -79,7 +79,7 @@ export default async function CategoryPage({
                 </h2>
               </Link>
               {hero.excerpt && (
-                <p className="mb-4 font-serif text-[18px] leading-relaxed text-gray-600">
+                <p className="mb-4 line-clamp-2 font-serif text-[18px] leading-snug text-gray-600">
                   {hero.excerpt}
                 </p>
               )}
@@ -138,7 +138,7 @@ export default async function CategoryPage({
                 </h4>
               </Link>
               {article.excerpt && (
-                <p className="line-clamp-3 font-serif text-[14px] leading-relaxed text-gray-600">
+                <p className="line-clamp-2 font-serif text-[14px] leading-snug text-gray-600">
                   {article.excerpt}
                 </p>
               )}

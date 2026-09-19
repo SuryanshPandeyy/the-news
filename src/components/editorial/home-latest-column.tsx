@@ -38,7 +38,7 @@ export function HomeLatestColumn({ articles }: { articles: ArticleListItem[] }) 
               </Link>
 
               {item.excerpt && (
-                <p className="mb-3 pr-4 font-serif text-[15px] leading-relaxed text-gray-600">
+                <p className="mb-3 line-clamp-2 pr-4 font-serif text-[15px] leading-snug text-gray-600">
                   {item.excerpt}
                 </p>
               )}

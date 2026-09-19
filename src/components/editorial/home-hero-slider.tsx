@@ -66,7 +66,7 @@ export function HomeHeroSlider({ slides }: { slides: HeroSlide[] }) {
                   {slide.title}
                 </h2>
                 {slide.excerpt && (
-                  <p className="hidden max-w-2xl font-sans text-lg text-gray-200 opacity-0 transition-opacity delay-100 duration-500 group-hover:opacity-100 md:block md:text-xl">
+                  <p className="line-clamp-2 hidden max-w-2xl font-sans text-lg text-gray-200 opacity-0 transition-opacity delay-100 duration-500 group-hover:opacity-100 md:block md:text-xl">
                     {slide.excerpt}
                   </p>
                 )}

@@ -66,7 +66,7 @@ export function HomeFeaturedColumn({
         </Link>
 
         {article.excerpt && (
-          <p className="mb-4 font-serif text-[15px] leading-relaxed text-gray-600">
+          <p className="mb-4 line-clamp-2 font-serif text-[15px] leading-snug text-gray-600">
             {article.excerpt}
           </p>
         )}

@@ -8,7 +8,6 @@ const articleImageSchema = z.object({
 export const articleSchema = z.object({
   title: z.string().min(3, "Title is required"),
   slug: z.string().optional(),
-  excerpt: z.string().optional(),
   content: z.string().min(1, "Content is required"),
   images: z.array(articleImageSchema).optional(),
   featuredImage: z.string().optional(),

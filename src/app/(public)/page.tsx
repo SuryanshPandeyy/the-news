@@ -4,7 +4,6 @@ import { HomeFeaturedColumn } from "@/components/editorial/home-featured-column"
 import { HomeLatestColumn } from "@/components/editorial/home-latest-column";
 import { HomeMostReadColumn } from "@/components/editorial/home-most-read-column";
 import { ArticleDateLabel } from "@/components/editorial/category-meta";
-import { NewsletterForm } from "@/components/newsletter/newsletter-form";
 import { isDbConfigured } from "@/lib/db/connect";
 import { getArticlesPaginated, getHomeFeed } from "@/lib/queries/articles";
 import { getSettings } from "@/lib/models/Settings";
@@ -85,7 +84,7 @@ export default async function HomePage() {
                   </Link>
                   <ArticleDateLabel date={article.publishedAt ?? article.createdAt} />
                   {article.excerpt && (
-                    <p className="mt-2 line-clamp-3 font-serif text-sm text-gray-600">
+                    <p className="mt-2 line-clamp-2 font-serif text-sm leading-snug text-gray-600">
                       {article.excerpt}
                     </p>
                   )}
@@ -95,19 +94,6 @@ export default async function HomePage() {
           </section>
         )}
       </div>
-
-      <section
-        id="newsletter"
-        className="border-t border-gray-200 bg-white px-4 py-12 md:px-8"
-      >
-        <div className="mx-auto max-w-xl text-center">
-          <h2 className="text-2xl font-bold text-black">{t("newsletterTitle", locale)}</h2>
-          <p className="mt-2 font-serif text-gray-600">{t("newsletterDesc", locale)}</p>
-          <div className="mt-6">
-            <NewsletterForm />
-          </div>
-        </div>
-      </section>
     </div>
   );
 }

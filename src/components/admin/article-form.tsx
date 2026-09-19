@@ -9,7 +9,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
-import { Textarea } from "@/components/ui/textarea";
 import { saveArticle } from "@/lib/actions/articles";
 import { slugify } from "@/lib/utils/slug";
 import type { ArticleDetail, ArticleImageItem } from "@/lib/types";
@@ -43,7 +42,6 @@ export function ArticleForm({
   const [title, setTitle] = useState(article?.title ?? "");
   const [slug, setSlug] = useState(article?.slug ?? "");
   const [slugManual, setSlugManual] = useState(Boolean(article));
-  const [excerpt, setExcerpt] = useState(article?.excerpt ?? "");
   const [content, setContent] = useState(article?.content ?? "<p></p>");
   const [category, setCategory] = useState(article?.category._id ?? "");
   const [author, setAuthor] = useState(article?.author ?? defaultAuthor);
@@ -112,7 +110,6 @@ export function ArticleForm({
       {
         title,
         slug: slug.trim() || undefined,
-        excerpt,
         content,
         category,
         author,
@@ -165,16 +162,6 @@ export function ArticleForm({
                 setSlug(e.target.value);
               }}
               placeholder={t("slugPlaceholder")}
-            />
-          </div>
-          <div className="space-y-2">
-            <AdminLabel htmlFor="excerpt">{t("shortDescription")}</AdminLabel>
-            <Textarea
-              id="excerpt"
-              value={excerpt}
-              onChange={(e) => setExcerpt(e.target.value)}
-              placeholder={t("excerptPlaceholder")}
-              rows={3}
             />
           </div>
         </CardContent>

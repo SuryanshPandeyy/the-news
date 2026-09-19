@@ -1,6 +1,7 @@
 import type { z } from "zod";
 import type { articleSchema } from "@/lib/validation/schemas";
 import { slugify } from "@/lib/utils/slug";
+import { excerptFromContent } from "@/lib/articles/excerpt";
 
 type ArticleInput = z.infer<typeof articleSchema>;
 
@@ -20,7 +21,7 @@ export function articleInputToDb(parsed: ArticleInput) {
   return {
     title: parsed.title.trim(),
     slug,
-    excerpt: opt(parsed.excerpt),
+    excerpt: excerptFromContent(parsed.content),
     content: parsed.content,
     images,
     featuredImage: first?.url ?? opt(parsed.featuredImage),

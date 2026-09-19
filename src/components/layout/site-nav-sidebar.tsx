@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ChevronRight, User, X } from "lucide-react";
+import { ChevronRight, X } from "lucide-react";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { LanguageSwitcher } from "@/components/shared/language-switcher";
 import { useLocale } from "@/components/providers/locale-provider";
@@ -43,24 +43,6 @@ export function SiteNavSidebar({
         <div className="flex flex-col py-4">
           <div className="mb-6 border-b border-gray-200 px-6 pb-6">
             <LanguageSwitcher />
-          </div>
-
-          <div className="mb-6 flex flex-col space-y-3 border-b border-gray-200 px-6 pb-6">
-            <Link
-              href="/admin/login"
-              onClick={() => onOpenChange(false)}
-              className="flex w-full items-center justify-center space-x-2 rounded bg-[#0a192f] px-4 py-2.5 text-[14px] font-bold text-white transition-colors hover:bg-blue-900"
-            >
-              <User className="h-[18px] w-[18px]" />
-              <span>{t("signIn")}</span>
-            </Link>
-            <Link
-              href="/#newsletter"
-              onClick={() => onOpenChange(false)}
-              className="w-full rounded border border-gray-300 bg-white px-4 py-2.5 text-center text-[14px] font-bold text-[#0a192f] transition-colors hover:bg-gray-50"
-            >
-              {t("subscribe")}
-            </Link>
           </div>
 
           <nav className="flex flex-col">
@@ -105,9 +87,6 @@ export function SiteNavSidebar({
             <nav className="flex flex-col space-y-4">
               <Link href="/search" className="text-[14px] text-gray-600 hover:text-black">
                 {t("search")}
-              </Link>
-              <Link href="/#newsletter" className="text-[14px] text-gray-600 hover:text-black">
-                {t("newsletters")}
               </Link>
               <Link href="/today" className="text-[14px] text-gray-600 hover:text-black">
                 {t("liveBriefing")}

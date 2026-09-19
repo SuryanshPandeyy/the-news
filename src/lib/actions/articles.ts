@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth-helpers";
+import { excerptFromContent } from "@/lib/articles/excerpt";
 import { articleInputToDb } from "@/lib/articles/map-payload";
 import { connectDB } from "@/lib/db/connect";
 import { Article } from "@/lib/models/Article";
@@ -98,7 +99,7 @@ export async function duplicateArticle(id: string): Promise<ActionResult> {
     const created = await Article.create({
       title: `${article.title} (Copy)`,
       slug,
-      excerpt: article.excerpt,
+      excerpt: excerptFromContent(article.content),
       subtitle: article.subtitle,
       content: article.content,
       featuredImage: article.featuredImage,

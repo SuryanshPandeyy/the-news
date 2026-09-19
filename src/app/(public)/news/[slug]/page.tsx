@@ -6,7 +6,6 @@ import { ArticleImage } from "@/components/editorial/article-image";
 import { ArticleImageGallery } from "@/components/editorial/article-image-gallery";
 import { ArticleDateLabel, CategoryBadge } from "@/components/editorial/category-meta";
 import { HomeMostReadColumn } from "@/components/editorial/home-most-read-column";
-import { NewsletterForm } from "@/components/newsletter/newsletter-form";
 import { SocialShare } from "@/components/social/social-share";
 import {
   getArticleBySlug,
@@ -160,13 +159,6 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
           </ul>
         </section>
       )}
-
-      <section className="mx-auto mt-12 max-w-2xl rounded-sm border border-gray-200 p-6">
-        <h2 className="text-lg font-bold">{t("newsletterTitle", locale)}</h2>
-        <div className="mt-4">
-          <NewsletterForm compact />
-        </div>
-      </section>
 
       {mostRead.length > 0 && (
         <div className="mx-auto mt-16 max-w-2xl border-t border-gray-200 pt-10 lg:max-w-none">
