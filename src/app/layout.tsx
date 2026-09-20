@@ -24,10 +24,13 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "The News",
-    template: "%s | The News",
+    default: "Maukhabar",
+    template: "%s | Maukhabar",
   },
   description: "Trusted journalism for the modern reader.",
+  appleWebApp: {
+    title: "Maukhabar",
+  },
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {

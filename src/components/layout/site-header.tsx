@@ -72,7 +72,7 @@ export function SiteHeader({
                   alt={siteName}
                   width={160}
                   height={40}
-                  className="h-7 w-auto max-w-[min(160px,50vw)] object-contain brightness-0 invert md:h-10"
+                  className="h-8 w-auto max-w-[min(180px,55vw)] rounded-sm bg-white px-1.5 py-0.5 object-contain md:h-10"
                   priority
                 />
               ) : (

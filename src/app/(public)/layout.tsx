@@ -5,14 +5,12 @@ import { getSiteShell } from "@/lib/data/site-shell";
 
 export async function generateMetadata(): Promise<Metadata> {
   const { settings } = await getSiteShell();
-  const iconUrl = settings.favicon || settings.logo;
   return {
     title: {
       default: settings.siteName,
       template: `%s | ${settings.siteName}`,
     },
     description: settings.siteDescription ?? undefined,
-    icons: iconUrl ? { icon: iconUrl, shortcut: iconUrl } : undefined,
   };
 }
 
@@ -27,7 +25,7 @@ export default async function PublicLayout({
     <div className="flex min-h-full flex-col bg-white font-sans text-gray-900 antialiased selection:bg-blue-200 selection:text-black">
       <SiteHeader
         siteName={settings.siteName}
-        logo={settings.logo ?? undefined}
+        logo={settings.logo ?? "/logo.png"}
         categories={categories}
       />
       <main className="flex-1">{children}</main>

@@ -3,12 +3,12 @@ import mongoose, { Schema, type InferSchemaType, type Model } from "mongoose";
 const settingsSchema = new Schema(
   {
     key: { type: String, default: "main", unique: true },
-    siteName: { type: String, default: "The News" },
+    siteName: { type: String, default: "Maukhabar.in" },
     siteDescription: {
       type: String,
       default: "Trusted journalism for the modern reader.",
     },
-    logo: { type: String },
+    logo: { type: String, default: "/logo.png" },
     favicon: { type: String },
     defaultAuthor: { type: String, default: "Editorial Desk" },
     defaultLocale: { type: String, enum: ["hi", "en"], default: "hi" },

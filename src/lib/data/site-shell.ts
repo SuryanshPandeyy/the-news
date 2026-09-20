@@ -7,9 +7,9 @@ export async function getSiteShell() {
     return {
       configured: false as const,
       settings: {
-        siteName: "The News",
+        siteName: "Maukhabar.in",
         siteDescription: "Configure MONGODB_URI to load content.",
-        logo: undefined as string | undefined,
+        logo: "/logo.png",
         favicon: undefined as string | undefined,
       },
       categories: [] as Awaited<ReturnType<typeof getActiveCategories>>,
@@ -30,9 +30,9 @@ export async function getSiteShell() {
     return {
       configured: false as const,
       settings: {
-        siteName: "The News",
+        siteName: "Maukhabar.in",
         siteDescription: "Unable to connect to the database.",
-        logo: undefined as string | undefined,
+        logo: "/logo.png",
         favicon: undefined as string | undefined,
       },
       categories: [] as Awaited<ReturnType<typeof getActiveCategories>>,
