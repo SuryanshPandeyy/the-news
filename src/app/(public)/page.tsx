@@ -1,15 +1,18 @@
 import Link from "next/link";
-import { HomeHeroSlider } from "@/components/editorial/home-hero-slider";
-import { HomeFeaturedColumn } from "@/components/editorial/home-featured-column";
-import { HomeLatestColumn } from "@/components/editorial/home-latest-column";
-import { HomeMostReadColumn } from "@/components/editorial/home-most-read-column";
-import { ArticleDateLabel } from "@/components/editorial/category-meta";
+import { HomeBreakingTicker } from "@/components/editorial/home-breaking-ticker";
+import { HomeCategoryStrip } from "@/components/editorial/home-category-strip";
+import { HomeHeroStage } from "@/components/editorial/home-hero-stage";
+import { HomeMostReadList } from "@/components/editorial/home-most-read-list";
+import { HomeSidebarCards } from "@/components/editorial/home-sidebar-cards";
+import { HomeSocialBand } from "@/components/editorial/home-social-band";
+import { NewsListRow } from "@/components/editorial/news-list-row";
+import { NewsSectionHeader } from "@/components/editorial/news-section-header";
 import { isDbConfigured } from "@/lib/db/connect";
 import { getHomeFeed, getHomeHeaderBannerSlides } from "@/lib/queries/articles";
+import { getActiveCategories } from "@/lib/queries/categories";
 import { getSettings } from "@/lib/models/Settings";
 import { getLocale } from "@/lib/i18n/locale";
 import { t } from "@/lib/i18n/messages";
-import { newsArticlePath } from "@/lib/utils/slug";
 
 export const dynamic = "force-dynamic";
 
@@ -29,10 +32,10 @@ export default async function HomePage() {
   if (!isDbConfigured()) {
     return (
       <div className="mx-auto max-w-3xl px-4 py-20 text-center">
-        <h1 className="font-serif text-4xl font-black text-black">Welcome</h1>
-        <p className="mt-4 font-serif text-gray-600">
+        <h1 className="text-4xl font-black text-black">Welcome</h1>
+        <p className="mt-4 text-gray-600">
           Set <code className="rounded bg-gray-100 px-1">MONGODB_URI</code> and visit{" "}
-          <Link href="/admin" className="font-bold text-[#0000ee] hover:underline">
+          <Link href="/admin" className="font-bold text-[#e71920] hover:underline">
             /admin
           </Link>{" "}
           to publish stories.
@@ -41,9 +44,11 @@ export default async function HomePage() {
     );
   }
 
-  const [feed, headerSlides, locale] = await Promise.all([
+  const [feed, headerSlides, categories, settings, locale] = await Promise.all([
     getHomeFeed(),
     getHomeHeaderBannerSlides(5),
+    getActiveCategories(),
+    getSettings(),
     getLocale(),
   ]);
 
@@ -54,47 +59,75 @@ export default async function HomePage() {
     excerpt: article.excerpt,
     image: article.bannerImage ?? article.featuredImage,
     categoryName: article.category?.name,
+    publishedAt: article.publishedAt,
+    createdAt: article.createdAt,
   }));
+
+  const sidebarArticles = feed.latest.length > 0 ? feed.latest : feed.mostRead.slice(0, 3);
+
+  const categoryImages: Record<string, string | undefined> = {};
+  for (const article of [...feed.more, ...feed.latest, ...feed.mostRead, ...headerSlides]) {
+    const categoryId = article.category?._id;
+    if (categoryId && article.featuredImage && !categoryImages[categoryId]) {
+      categoryImages[categoryId] = article.featuredImage;
+    }
+  }
+
+  const socials = {
+    socialFacebook: settings.socialFacebook ?? undefined,
+    socialTwitter: settings.socialTwitter ?? undefined,
+    socialInstagram: settings.socialInstagram ?? undefined,
+    socialYoutube: settings.socialYoutube ?? undefined,
+    socialWhatsapp: settings.socialWhatsapp ?? undefined,
+  };
 
   return (
     <div className="w-full">
-      <HomeHeroSlider slides={heroSlides} />
-      <div className="mx-auto mt-4 max-w-[1440px] px-4 py-8 md:px-8 md:py-12">
-        <div className="grid grid-cols-1 gap-y-12 md:grid-cols-12 lg:gap-y-0">
-          <HomeFeaturedColumn
-            article={feed.hero}
-            thumbnails={feed.heroThumbs}
-            sectionTitle={feed.sectionTitle}
-          />
-          <HomeLatestColumn articles={feed.latest} />
-          <HomeMostReadColumn articles={feed.mostRead} />
+      <div className="mx-auto max-w-[1500px] space-y-5 px-4 py-5 sm:px-5">
+        <HomeBreakingTicker articles={feed.breaking} />
+
+        <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
+          <div className="lg:col-span-8">
+            <HomeHeroStage slides={heroSlides} />
+          </div>
+          <div className="lg:col-span-4">
+            <HomeSidebarCards
+              title={t("latestNews", locale)}
+              actionLabel={t("allNews", locale)}
+              actionHref="/today"
+              articles={sidebarArticles}
+            />
+          </div>
         </div>
 
-        {feed.more.length > 0 && (
-          <section className="mt-16 border-t-[3px] border-[#0a192f] pt-10">
-            <h2 className="mb-8 text-[22px] font-black uppercase tracking-tight text-[#0a192f]">
-              {t("moreStories", locale)}
-            </h2>
-            <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {feed.more.map((article) => (
-                <article key={article._id} className="group flex flex-col">
-                  <Link href={newsArticlePath(article.slug)}>
-                    <h3 className="text-[20px] font-bold leading-tight transition-colors group-hover:text-blue-600">
-                      {article.title}
-                    </h3>
-                  </Link>
-                  <ArticleDateLabel date={article.publishedAt ?? article.createdAt} />
-                  {article.excerpt && (
-                    <p className="mt-2 line-clamp-2 font-serif text-sm leading-snug text-gray-600">
-                      {article.excerpt}
-                    </p>
-                  )}
-                </article>
-              ))}
-            </div>
+        {categories.length > 0 && (
+          <section>
+            <NewsSectionHeader title={t("categories", locale)} />
+            <HomeCategoryStrip categories={categories} categoryImages={categoryImages} />
           </section>
         )}
+
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+          <section className="lg:col-span-8">
+            <NewsSectionHeader title={t("latestNews", locale)} action={t("allNews", locale)} actionHref="/today" />
+            <div className="rounded-md bg-white px-4 shadow-sm">
+              {feed.more.length > 0 ? (
+                feed.more.map((article) => <NewsListRow key={article._id} article={article} />)
+              ) : (
+                <p className="py-8 text-center text-gray-500">{t("moreStories", locale)}</p>
+              )}
+            </div>
+          </section>
+
+          <aside className="lg:col-span-4">
+            <div className="rounded-md bg-white p-4 shadow-sm">
+              <HomeMostReadList title={t("mostRead", locale)} articles={feed.mostRead} />
+            </div>
+          </aside>
+        </div>
       </div>
+
+      <HomeSocialBand tagline={settings.siteDescription ?? undefined} socials={socials} />
     </div>
   );
 }

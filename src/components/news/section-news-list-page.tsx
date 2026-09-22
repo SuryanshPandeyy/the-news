@@ -1,4 +1,5 @@
-import { HomeLatestColumn } from "@/components/editorial/home-latest-column";
+import { NewsListRow } from "@/components/editorial/news-list-row";
+import { NewsSectionHeader } from "@/components/editorial/news-section-header";
 import { PaginationControls } from "@/components/shared/pagination-controls";
 import type { ArticleListItem } from "@/lib/types";
 
@@ -18,14 +19,18 @@ export function SectionNewsListPage({
   basePath: string;
 }) {
   return (
-    <div className="mx-auto max-w-[1440px] px-4 py-8 md:px-8 md:py-12">
-      <div className="mb-10 border-b-[3px] border-black pb-4">
-        <h1 className="text-5xl font-black leading-none text-black md:text-6xl">{title}</h1>
-        {subtitle && <p className="mt-2 text-sm font-medium text-gray-500">{subtitle}</p>}
+    <div className="mx-auto max-w-[1500px] px-4 py-8 sm:px-5">
+      <NewsSectionHeader title={title} />
+      {subtitle && <p className="mb-6 text-sm font-medium text-gray-600">{subtitle}</p>}
+
+      <div className="rounded-md bg-white px-4 shadow-sm">
+        {articles.length > 0 ? (
+          articles.map((article) => <NewsListRow key={article._id} article={article} />)
+        ) : (
+          <p className="py-12 text-center text-gray-500">No stories yet.</p>
+        )}
       </div>
-      <div className="max-w-2xl">
-        <HomeLatestColumn articles={articles} />
-      </div>
+
       <PaginationControls page={page} totalPages={totalPages} basePath={basePath} />
     </div>
   );

@@ -1,15 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronRight } from "lucide-react";
 import { ArticleImage } from "@/components/editorial/article-image";
-import { ArticleDateLabel } from "@/components/editorial/category-meta";
 import { ContinueReading } from "@/components/editorial/continue-reading";
+import { NewsListRow } from "@/components/editorial/news-list-row";
+import { NewsSectionHeader } from "@/components/editorial/news-section-header";
 import { PaginationControls } from "@/components/shared/pagination-controls";
+import { formatDateIST } from "@/lib/timezone";
 import { getCategoryFeed } from "@/lib/queries/articles";
 import { getCategoryBySlug } from "@/lib/queries/categories";
 import { getLocale } from "@/lib/i18n/locale";
 import { t } from "@/lib/i18n/messages";
-import { categoryPath, newsArticlePath } from "@/lib/utils/slug";
+import { newsArticlePath } from "@/lib/utils/slug";
 
 export const dynamic = "force-dynamic";
 
@@ -36,126 +37,72 @@ export default async function CategoryPage({
   const category = await getCategoryBySlug(slug);
   if (!category) notFound();
 
-  const { hero, editorPicks, gridArticles, pagination } = await getCategoryFeed(
-    category.slug,
-    page,
-    12,
-  );
+  const { hero, gridArticles, pagination } = await getCategoryFeed(category.slug, page, 12);
   const locale = await getLocale();
 
   return (
-    <div className="mx-auto max-w-[1440px] px-4 py-8 md:px-8 md:py-12">
-      <div className="mb-10 flex items-end justify-between border-b-[3px] border-black pb-4">
-        <h1 className="text-5xl font-black leading-none text-black md:text-6xl">
-          {category.name}
-        </h1>
-        <div className="hidden space-x-4 md:flex">
-          <span className="cursor-pointer text-sm font-bold uppercase text-black">{t("latest", locale)}</span>
-          <Link
-            href={categoryPath(category.slug)}
-            className="text-sm font-bold uppercase text-gray-500 hover:text-black"
-          >
-            {t("archive", locale)}
-          </Link>
-        </div>
-      </div>
+    <div className="mx-auto max-w-[1500px] px-4 py-8 sm:px-5">
+      <NewsSectionHeader title={category.name} />
 
       {hero && (
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-12 lg:gap-12">
-          <div className="lg:col-span-8">
-            <article className="group flex flex-col">
-              <Link
-                href={newsArticlePath(hero.slug)}
-                className="relative mb-4 aspect-[16/9] w-full overflow-hidden bg-gray-100"
-              >
-                <ArticleImage
-                  src={hero.featuredImage}
-                  alt={hero.featuredImageAlt || hero.title}
-                  seed={hero._id}
-                  fill
-                  sizes="(max-width: 1024px) 100vw, 66vw"
-                  className="transition-transform duration-500 ease-out group-hover:scale-[1.02]"
-                />
-              </Link>
-              <ArticleDateLabel date={hero.publishedAt ?? hero.createdAt} />
-              <Link href={newsArticlePath(hero.slug)}>
-                <h2 className="mb-4 pr-4 text-[32px] font-bold leading-tight transition-colors group-hover:text-blue-700 md:text-[40px]">
-                  {hero.title}
-                </h2>
-              </Link>
+        <article className="group mb-8 overflow-hidden rounded-md bg-white shadow-sm">
+          <Link
+            href={newsArticlePath(hero.slug)}
+            className="relative block aspect-[16/9] w-full overflow-hidden bg-gray-200"
+          >
+            <ArticleImage
+              src={hero.featuredImage}
+              alt={hero.featuredImageAlt || hero.title}
+              seed={hero._id}
+              fill
+              sizes="(max-width: 1024px) 100vw, 80vw"
+              className="object-cover transition duration-500 group-hover:scale-[1.02]"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 p-5 sm:p-7">
+              <span className="inline-flex bg-[#e71920] px-3 py-1 text-xs font-bold text-white">
+                {category.name}
+              </span>
+              <h2 className="mt-3 max-w-4xl text-2xl font-black leading-tight text-white sm:text-4xl">
+                {hero.title}
+              </h2>
               {hero.excerpt && (
-                <p className="mb-4 line-clamp-2 font-serif text-[18px] leading-snug text-gray-600">
+                <p className="mt-2 line-clamp-2 max-w-3xl text-sm text-gray-200 sm:text-base">
                   {hero.excerpt}
                 </p>
               )}
-              <ContinueReading href={newsArticlePath(hero.slug)} />
-            </article>
-          </div>
-
-          <div className="border-t border-gray-200 pt-8 lg:col-span-4 lg:border-t-0 lg:border-l lg:pl-8 lg:pt-0">
-            <h3 className="mb-6 flex items-center text-xl font-bold">
-              {t("editorsPicks", locale)}
-              <ChevronRight className="ml-1 h-4 w-4 text-gray-400" />
-            </h3>
-            <div className="flex flex-col space-y-6">
-              {editorPicks.map((item) => (
-                <article
-                  key={item._id}
-                  className="group border-b border-dashed border-gray-200 pb-6 last:border-b-0 last:pb-0"
-                >
-                  <ArticleDateLabel date={item.publishedAt ?? item.createdAt} />
-                  <Link href={newsArticlePath(item.slug)}>
-                    <h4 className="text-[16px] font-bold leading-tight transition-colors group-hover:text-blue-700">
-                      {item.title}
-                    </h4>
-                  </Link>
-                </article>
-              ))}
+              <p className="mt-3 text-xs text-gray-300">
+                {formatDateIST(hero.publishedAt ?? hero.createdAt, { dateStyle: "medium" })}
+              </p>
             </div>
+          </Link>
+          <div className="px-5 py-4">
+            <ContinueReading href={newsArticlePath(hero.slug)} />
           </div>
-        </div>
+        </article>
       )}
 
-      <div className="mt-16 border-t-2 border-black pt-10">
-        <h3 className="mb-8 text-2xl font-bold">
-          {t("moreFrom", locale)} {category.name}
-        </h3>
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
-          {gridArticles.map((article) => (
-            <article key={article._id} className="group flex flex-col">
-              <Link
-                href={newsArticlePath(article.slug)}
-                className="relative mb-3 aspect-video w-full overflow-hidden bg-gray-100"
-              >
-                <ArticleImage
-                  src={article.featuredImage}
-                  alt={article.featuredImageAlt || article.title}
-                  seed={article._id}
-                  fill
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  className="transition-transform duration-500 ease-out group-hover:scale-[1.05]"
-                />
-              </Link>
-              <ArticleDateLabel date={article.publishedAt ?? article.createdAt} />
-              <Link href={newsArticlePath(article.slug)}>
-                <h4 className="mb-2 text-[20px] font-bold leading-tight transition-colors group-hover:text-blue-700">
-                  {article.title}
-                </h4>
-              </Link>
-              {article.excerpt && (
-                <p className="line-clamp-2 font-serif text-[14px] leading-snug text-gray-600">
-                  {article.excerpt}
-                </p>
-              )}
-            </article>
-          ))}
+      {gridArticles.length > 0 ? (
+        <section>
+          <NewsSectionHeader
+            title={`${t("moreFrom", locale)} ${category.name}`}
+          />
+          <div className="rounded-md bg-white px-4 shadow-sm">
+            {gridArticles.map((article) => (
+              <NewsListRow key={article._id} article={article} />
+            ))}
+          </div>
+          <PaginationControls
+            page={pagination.page}
+            totalPages={pagination.totalPages}
+            basePath={`/category/${slug}`}
+          />
+        </section>
+      ) : (
+        <div className="rounded-md bg-white px-4 py-16 text-center text-gray-500 shadow-sm">
+          No published stories in this category yet.
         </div>
-        <PaginationControls
-          page={pagination.page}
-          totalPages={pagination.totalPages}
-          basePath={`/category/${slug}`}
-        />
-      </div>
+      )}
     </div>
   );
 }

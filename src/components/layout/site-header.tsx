@@ -2,36 +2,76 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Bell, Menu, MoreHorizontal, Search } from "lucide-react";
+import { Mail, Menu, Search } from "lucide-react";
+import { SocialIcon } from "@/components/shared/social-icon";
 import { useState } from "react";
 import { SiteNavSidebar } from "@/components/layout/site-nav-sidebar";
+import { LanguageSwitcher } from "@/components/shared/language-switcher";
 import { useLocale } from "@/components/providers/locale-provider";
 import { formatDateIST } from "@/lib/timezone";
 import type { CategorySummary } from "@/lib/types";
 import { categoryPath } from "@/lib/utils/slug";
 import { DEFAULT_SECTION_LINKS } from "@/lib/nav/default-sections";
 
+export type SiteHeaderSocials = {
+  socialFacebook?: string;
+  socialTwitter?: string;
+  socialInstagram?: string;
+  socialLinkedin?: string;
+  socialYoutube?: string;
+  socialWhatsapp?: string;
+};
+
 export function SiteHeader({
   siteName,
   logo,
+  siteDescription,
+  contactEmail,
+  socials,
   categories,
 }: {
   siteName: string;
   logo?: string;
+  siteDescription?: string;
+  contactEmail?: string;
+  socials?: SiteHeaderSocials;
   categories: CategorySummary[];
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { t } = useLocale();
 
   const now = new Date();
-  const weekday = formatDateIST(now, { weekday: "long" });
   const dateLine = formatDateIST(now, {
+    weekday: "long",
     day: "numeric",
-    month: "short",
+    month: "long",
     year: "numeric",
   });
 
   const useDefaultSections = categories.length === 0;
+  const socialLinks = [
+    socials?.socialFacebook
+      ? { href: socials.socialFacebook, network: "facebook" as const, label: "Facebook" }
+      : null,
+    socials?.socialTwitter
+      ? { href: socials.socialTwitter, network: "twitter" as const, label: "X" }
+      : null,
+    socials?.socialInstagram
+      ? { href: socials.socialInstagram, network: "instagram" as const, label: "Instagram" }
+      : null,
+    socials?.socialYoutube
+      ? { href: socials.socialYoutube, network: "youtube" as const, label: "YouTube" }
+      : null,
+    socials?.socialWhatsapp
+      ? {
+          href: socials.socialWhatsapp.startsWith("http")
+            ? socials.socialWhatsapp
+            : `https://wa.me/${socials.socialWhatsapp.replace(/\D/g, "")}`,
+          network: "whatsapp" as const,
+          label: "WhatsApp",
+        }
+      : null,
+  ].filter((link): link is NonNullable<typeof link> => link !== null);
 
   return (
     <>
@@ -39,109 +79,137 @@ export function SiteHeader({
         open={sidebarOpen}
         onOpenChange={setSidebarOpen}
         categories={categories}
+        contactEmail={contactEmail}
       />
 
-      <header className="sticky top-0 z-40 w-full bg-white shadow-sm">
-        <div className="grid grid-cols-[auto_1fr_auto] items-center gap-2 bg-[#0a192f] px-3 py-2.5 text-white md:gap-4 md:px-6 md:py-3">
-          <div className="flex items-center gap-2 md:gap-4">
-            <button
-              type="button"
-              onClick={() => setSidebarOpen(true)}
-              className="rounded p-1 text-white transition-colors hover:bg-white/10 hover:text-blue-200 focus:outline-none"
-              aria-label={t("openMenu")}
-            >
-              <Menu size={24} strokeWidth={2} />
-            </button>
-            <Link
-              href="/search"
-              className="rounded p-1 text-white transition-colors hover:bg-white/10 hover:text-blue-200 focus:outline-none"
-              aria-label={t("search")}
-            >
-              <Search size={20} strokeWidth={2} />
-            </Link>
-          </div>
+      <header className="w-full">
+        <div className="bg-[#121212] text-white">
+          <div className="mx-auto flex max-w-[1500px] flex-wrap items-center justify-between gap-3 px-4 py-2 text-xs sm:px-5">
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setSidebarOpen(true)}
+                className="rounded p-1 hover:bg-white/10 lg:hidden"
+                aria-label={t("openMenu")}
+              >
+                <Menu size={20} />
+              </button>
+              <span className="font-semibold text-gray-200">{dateLine}</span>
+            </div>
 
-          <div className="min-w-0 flex justify-center">
-            <Link
-              href="/"
-              className="flex max-w-full items-center leading-none transition-opacity hover:opacity-90"
-            >
+            <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+              {socialLinks.map((link) => (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-gray-300 transition hover:text-white"
+                  aria-label={link.label}
+                >
+                  <SocialIcon network={link.network} />
+                </a>
+              ))}
+              <Link
+                href="/search"
+                className="flex items-center gap-1 font-semibold text-gray-200 hover:text-white"
+              >
+                <Search size={15} />
+                <span className="hidden sm:inline">{t("search")}</span>
+              </Link>
+              {contactEmail && (
+                <a
+                  href={`mailto:${contactEmail}`}
+                  className="hidden items-center gap-1 font-semibold text-gray-200 hover:text-white sm:flex"
+                >
+                  <Mail size={15} />
+                  {t("contact")}
+                </a>
+              )}
+              <LanguageSwitcher variant="compact" className="hidden sm:flex" />
+            </div>
+          </div>
+        </div>
+
+        <div className="border-b border-gray-200 bg-white">
+          <div className="mx-auto flex max-w-[1500px] flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-5">
+            <Link href="/" className="shrink-0">
               {logo ? (
                 <Image
                   src={logo}
                   alt={siteName}
-                  width={160}
-                  height={40}
-                  className="h-8 w-auto max-w-[min(180px,55vw)] rounded-sm bg-white px-1.5 py-0.5 object-contain md:h-10"
+                  width={200}
+                  height={56}
+                  className="h-12 w-auto max-w-[220px] object-contain md:h-14"
                   priority
                 />
               ) : (
-                <span className="block truncate whitespace-nowrap font-serif text-xl font-black tracking-tighter text-white md:text-[34px]">
-                  {siteName}
-                  <span className="text-blue-400">.</span>
-                </span>
+                <span className="text-3xl font-black text-[#e71920]">{siteName}</span>
               )}
             </Link>
-          </div>
 
-          <div className="flex justify-end">
-            <Link
-              href="/today"
-              className="rounded p-1 text-white transition-colors hover:bg-white/10 hover:text-blue-200 focus:outline-none"
-              aria-label={t("todaysNews")}
-            >
-              <Bell size={20} strokeWidth={2} />
-            </Link>
+            {siteDescription && (
+              <p className="hidden max-w-xl flex-1 text-center text-sm font-medium leading-snug text-gray-700 md:block">
+                {siteDescription}
+              </p>
+            )}
+
+            <div className="hidden shrink-0 bg-[#e71920] px-4 py-2 text-center text-white sm:block">
+              <div className="text-2xl font-black leading-none">24×7</div>
+              <div className="text-xs font-bold tracking-wide text-yellow-300">LIVE</div>
+            </div>
           </div>
         </div>
 
-        <div className="relative flex items-center overflow-x-auto border-b border-gray-200 bg-white px-4 py-2 hide-scrollbar md:px-6">
-          <div className="mr-8 flex shrink-0 flex-col justify-center border-r border-gray-200 pr-4 leading-tight">
-            <span className="text-[11px] font-black uppercase tracking-wider text-[#0a192f]">
-              {weekday}
-            </span>
-            <span className="text-[11px] font-medium text-gray-500">{dateLine}</span>
+        <div className="sticky top-0 z-40 bg-[#e71920] shadow-md">
+          <div className="mx-auto max-w-[1500px] overflow-x-auto px-4 hide-scrollbar sm:px-5">
+            <nav className="flex min-w-max items-center gap-1 py-2.5">
+              <Link
+                href="/"
+                className="rounded px-3 py-1.5 text-sm font-bold text-white transition hover:bg-black/15"
+              >
+                {t("home")}
+              </Link>
+              {useDefaultSections
+                ? DEFAULT_SECTION_LINKS.map((link) => (
+                    <Link
+                      key={link.id}
+                      href={link.href}
+                      className="whitespace-nowrap rounded px-3 py-1.5 text-sm font-bold text-white transition hover:bg-black/15"
+                    >
+                      {t(link.labelKey)}
+                    </Link>
+                  ))
+                : categories.map((item) => (
+                    <Link
+                      key={item._id}
+                      href={categoryPath(item.slug)}
+                      className="whitespace-nowrap rounded px-3 py-1.5 text-sm font-bold text-white transition hover:bg-black/15"
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
+            </nav>
           </div>
+        </div>
 
-          <nav className="flex min-w-max flex-1 items-center space-x-1 md:space-x-2">
-            <Link
-              href="/"
-              className="rounded-md px-3 py-1.5 text-[13px] font-semibold text-gray-700 transition-all hover:bg-blue-50 hover:text-blue-700"
-            >
-              {t("home")}
-            </Link>
-            {useDefaultSections
-              ? DEFAULT_SECTION_LINKS.map((link) => (
+        {!useDefaultSections && (
+          <div className="bg-[#121212]">
+            <div className="mx-auto max-w-[1500px] overflow-x-auto px-4 hide-scrollbar sm:px-5">
+              <nav className="flex min-w-max items-center gap-2 py-2">
+                {DEFAULT_SECTION_LINKS.map((link) => (
                   <Link
                     key={link.id}
                     href={link.href}
-                    className="whitespace-nowrap rounded-md px-3 py-1.5 text-[13px] font-semibold text-gray-700 transition-all hover:bg-blue-50 hover:text-blue-700"
+                    className="whitespace-nowrap rounded-full border border-white/20 px-4 py-1 text-xs font-semibold text-white transition hover:border-[#e71920] hover:bg-[#e71920]"
                   >
                     {t(link.labelKey)}
                   </Link>
-                ))
-              : categories.map((item) => (
-                  <Link
-                    key={item._id}
-                    href={categoryPath(item.slug)}
-                    className="whitespace-nowrap rounded-md px-3 py-1.5 text-[13px] font-semibold text-gray-700 transition-all hover:bg-blue-50 hover:text-blue-700"
-                  >
-                    {item.name}
-                  </Link>
                 ))}
-          </nav>
-
-          <div className="sticky right-0 ml-4 hidden shrink-0 bg-white pl-4 shadow-[-10px_0_10px_-10px_rgba(0,0,0,0.1)] md:block">
-            <button
-              type="button"
-              onClick={() => setSidebarOpen(true)}
-              className="flex items-center justify-center rounded-md bg-gray-100 p-1.5 text-gray-600 transition-colors hover:bg-gray-200 hover:text-black"
-              aria-label={t("moreSections")}
-            >
-              <MoreHorizontal size={18} />
-            </button>
+              </nav>
+            </div>
           </div>
-        </div>
+        )}
       </header>
     </>
   );
