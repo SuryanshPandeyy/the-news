@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { Share2 } from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -22,6 +23,8 @@ import { newsArticlePath } from "@/lib/utils/slug";
 import type { ArticleListItem } from "@/lib/types";
 import { formatDateIST } from "@/lib/timezone";
 import { useLocale } from "@/components/providers/locale-provider";
+import { getSiteUrl } from "@/lib/site";
+import { cn } from "@/lib/utils";
 
 export function NewsTable({ articles }: { articles: ArticleListItem[] }) {
   const { t } = useLocale();
@@ -45,6 +48,32 @@ export function NewsTable({ articles }: { articles: ArticleListItem[] }) {
     if (!res.success) toast.error(res.message);
     else toast.success("Updated");
     window.location.reload();
+  }
+
+  async function onShare(article: ArticleListItem) {
+    const url = `${getSiteUrl()}${newsArticlePath(article.slug)}`;
+
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({
+          title: article.title,
+          text: article.title,
+          url,
+        });
+      } catch (err) {
+        if (err instanceof Error && err.name !== "AbortError") {
+          toast.error(t("shareFailed"));
+        }
+      }
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success(t("linkCopied"));
+    } catch {
+      toast.error(t("copyLinkFailed"));
+    }
   }
 
   if (!articles.length) {
@@ -106,24 +135,33 @@ export function NewsTable({ articles }: { articles: ArticleListItem[] }) {
               {article.views ?? 0}
             </TableCell>
             <TableCell className="text-right">
-              <div className="flex justify-end gap-1">
+              <div className="flex flex-wrap justify-end gap-1">
                 <Link
                   href={`/admin/news/${article._id}/edit`}
-                  className="inline-flex h-7 items-center rounded-lg px-2 text-sm hover:bg-muted"
+                  className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
                 >
                   {t("edit")}
                 </Link>
                 <Link
                   href={newsArticlePath(article.slug)}
                   target="_blank"
-                  className="inline-flex h-7 items-center rounded-lg px-2 text-sm hover:bg-muted"
+                  className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
                 >
                   {t("view")}
                 </Link>
-                <Button variant="ghost" size="sm" onClick={() => onToggle(article._id)}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => void onShare(article)}
+                >
+                  <Share2 data-icon="inline-start" />
+                  {t("share")}
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => onToggle(article._id)}>
                   {article.status === "published" ? t("unpublish") : t("publish")}
                 </Button>
-                <Button variant="ghost" size="sm" onClick={() => onDuplicate(article._id)}>
+                <Button variant="outline" size="sm" onClick={() => onDuplicate(article._id)}>
                   {t("copy")}
                 </Button>
                 <Button variant="destructive" size="sm" onClick={() => onDelete(article._id)}>
