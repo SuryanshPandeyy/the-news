@@ -13,8 +13,13 @@ import {
   getRelatedArticles,
   incrementArticleViews,
 } from "@/lib/queries/articles";
-import { placeholderImage } from "@/lib/images/placeholders";
 import { getSiteUrl } from "@/lib/site";
+import {
+  buildPageMetadata,
+  getSeoSiteContext,
+  resolveArticleShareImageUrl,
+  toAbsoluteUrl,
+} from "@/lib/seo/metadata";
 import { getReadingTimeMinutes } from "@/lib/utils/reading-time";
 import { getLocale } from "@/lib/i18n/locale";
 import { t } from "@/lib/i18n/messages";
@@ -24,19 +29,28 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const article = await getArticleBySlug(slug);
+  const [article, site, locale] = await Promise.all([
+    getArticleBySlug(slug),
+    getSeoSiteContext(),
+    getLocale(),
+  ]);
   if (!article) return { title: "Article" };
-  return {
+
+  const heroImage = article.images?.[0]?.url ?? article.featuredImage;
+
+  return buildPageMetadata({
     title: article.title,
     description: article.excerpt,
-    openGraph: {
-      title: article.title,
-      description: article.excerpt,
-      images: article.featuredImage ? [article.featuredImage] : [placeholderImage(slug)],
-      type: "article",
-      publishedTime: article.publishedAt,
-    },
-  };
+    path: newsArticlePath(article.slug),
+    image: heroImage,
+    ogImageOverride: resolveArticleShareImageUrl(heroImage),
+    site,
+    locale,
+    type: "article",
+    publishedTime: article.publishedAt ?? article.createdAt,
+    modifiedTime: article.updatedAt,
+    authors: article.author ? [article.author] : undefined,
+  });
 }
 
 export default async function ArticlePage({ params }: { params: Promise<{ slug: string }> }) {
@@ -64,15 +78,24 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
         ? [{ url: heroImage }]
         : [];
 
+  const site = await getSeoSiteContext();
+  const shareImage = resolveArticleShareImageUrl(heroImage);
+
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "NewsArticle",
     headline: article.title,
     description: article.excerpt,
-    image: heroImage ? [heroImage] : [placeholderImage(slug)],
+    image: [shareImage],
     datePublished: published,
     dateModified: article.updatedAt,
     author: [{ "@type": "Person", name: article.author ?? "Editorial Desk" }],
+    mainEntityOfPage: { "@type": "WebPage", "@id": url },
+    publisher: {
+      "@type": "Organization",
+      name: site.siteName,
+      logo: { "@type": "ImageObject", url: toAbsoluteUrl("/logo.png") },
+    },
     ...(article.category?.name ? { articleSection: article.category.name } : {}),
   };
 

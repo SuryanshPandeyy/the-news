@@ -1,6 +1,9 @@
 import { HomeLatestColumn } from "@/components/editorial/home-latest-column";
 import { PaginationControls } from "@/components/shared/pagination-controls";
 import { getArticlesPaginated } from "@/lib/queries/articles";
+import { getLocale } from "@/lib/i18n/locale";
+import { t } from "@/lib/i18n/messages";
+import { buildPageMetadata, getSeoSiteContext } from "@/lib/seo/metadata";
 
 export const dynamic = "force-dynamic";
 
@@ -9,11 +12,20 @@ export async function generateMetadata({
 }: {
   searchParams: Promise<{ q?: string }>;
 }) {
-  const { q } = await searchParams;
-  return {
-    title: q ? `Search: ${q}` : "Search",
-    description: "Search news articles",
-  };
+  const [{ q }, site, locale] = await Promise.all([
+    searchParams,
+    getSeoSiteContext(),
+    getLocale(),
+  ]);
+  const title = q ? `${t("search", locale)}: ${q}` : t("search", locale);
+
+  return buildPageMetadata({
+    title,
+    description: site.siteDescription,
+    path: q ? `/search?q=${encodeURIComponent(q)}` : "/search",
+    site,
+    locale,
+  });
 }
 
 export default async function SearchPage({

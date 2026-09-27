@@ -1,4 +1,19 @@
-export const metadata = { title: "Terms of Use" };
+import { getLocale } from "@/lib/i18n/locale";
+import { t } from "@/lib/i18n/messages";
+import { buildPageMetadata, getSeoSiteContext } from "@/lib/seo/metadata";
+
+export async function generateMetadata() {
+  const [site, locale] = await Promise.all([getSeoSiteContext(), getLocale()]);
+  const title = t("termsOfService", locale);
+
+  return buildPageMetadata({
+    title,
+    description: site.siteDescription,
+    path: "/terms",
+    site,
+    locale,
+  });
+}
 
 export default function TermsPage() {
   return (

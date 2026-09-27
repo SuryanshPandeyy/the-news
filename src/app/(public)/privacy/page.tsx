@@ -1,4 +1,19 @@
-export const metadata = { title: "Privacy Policy" };
+import { getLocale } from "@/lib/i18n/locale";
+import { t } from "@/lib/i18n/messages";
+import { buildPageMetadata, getSeoSiteContext } from "@/lib/seo/metadata";
+
+export async function generateMetadata() {
+  const [site, locale] = await Promise.all([getSeoSiteContext(), getLocale()]);
+  const title = t("privacyPolicy", locale);
+
+  return buildPageMetadata({
+    title,
+    description: site.siteDescription,
+    path: "/privacy",
+    site,
+    locale,
+  });
+}
 
 export default function PrivacyPage() {
   return (

@@ -13,19 +13,29 @@ import { getActiveCategories } from "@/lib/queries/categories";
 import { getSettings } from "@/lib/models/Settings";
 import { getLocale } from "@/lib/i18n/locale";
 import { t } from "@/lib/i18n/messages";
+import { getSiteUrl } from "@/lib/site";
+import {
+  buildPageMetadata,
+  getSeoSiteContext,
+  resolveShareImageUrl,
+  toAbsoluteUrl,
+} from "@/lib/seo/metadata";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata() {
-  try {
-    const settings = await getSettings();
-    return {
-      title: settings.defaultSeoTitle ?? settings.siteName,
-      description: settings.defaultSeoDescription ?? settings.siteDescription,
-    };
-  } catch {
-    return { title: "The News" };
-  }
+  const [site, locale] = await Promise.all([getSeoSiteContext(), getLocale()]);
+  const title = site.defaultSeoTitle?.trim() || site.siteName;
+  const description =
+    site.defaultSeoDescription?.trim() || site.siteDescription?.trim();
+
+  return buildPageMetadata({
+    title,
+    description,
+    path: "/",
+    site,
+    locale,
+  });
 }
 
 export default async function HomePage() {
@@ -44,13 +54,33 @@ export default async function HomePage() {
     );
   }
 
-  const [feed, headerSlides, categories, settings, locale] = await Promise.all([
+  const [feed, headerSlides, categories, settings, locale, site] = await Promise.all([
     getHomeFeed(),
     getHomeHeaderBannerSlides(5),
     getActiveCategories(),
     getSettings(),
     getLocale(),
+    getSeoSiteContext(),
   ]);
+
+  const siteJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    name: site.siteName,
+    url: getSiteUrl(),
+    description: site.siteDescription,
+    image: resolveShareImageUrl(null, site),
+    publisher: {
+      "@type": "Organization",
+      name: site.siteName,
+      logo: { "@type": "ImageObject", url: toAbsoluteUrl("/logo.png") },
+    },
+    potentialAction: {
+      "@type": "SearchAction",
+      target: `${getSiteUrl()}/search?q={search_term_string}`,
+      "query-input": "required name=search_term_string",
+    },
+  };
 
   const heroSlides = headerSlides.map((article) => ({
     _id: article._id,
@@ -83,6 +113,10 @@ export default async function HomePage() {
 
   return (
     <div className="w-full">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(siteJsonLd) }}
+      />
       <div className="mx-auto max-w-[1500px] space-y-5 px-4 py-5 sm:px-5">
         <HomeBreakingTicker articles={feed.breaking} />
 

@@ -2,20 +2,29 @@ import { HomeLatestColumn } from "@/components/editorial/home-latest-column";
 import { PaginationControls } from "@/components/shared/pagination-controls";
 import { getArticlesPaginated } from "@/lib/queries/articles";
 import { formatDateIST } from "@/lib/timezone";
+import { getLocale } from "@/lib/i18n/locale";
+import { t } from "@/lib/i18n/messages";
+import { buildPageMetadata, getSeoSiteContext } from "@/lib/seo/metadata";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata() {
+  const [site, locale] = await Promise.all([getSeoSiteContext(), getLocale()]);
   const label = formatDateIST(new Date(), {
     weekday: "long",
     year: "numeric",
     month: "long",
     day: "numeric",
   });
-  return {
-    title: `Today's News — ${label}`,
-    description: "Stories published today (Asia/Kolkata).",
-  };
+  const title = `${t("todaysNews", locale)} — ${label}`;
+
+  return buildPageMetadata({
+    title,
+    description: `${t("todaysNews", locale)} (${label}). ${site.siteDescription ?? ""}`.trim(),
+    path: "/today",
+    site,
+    locale,
+  });
 }
 
 export default async function TodayPage({

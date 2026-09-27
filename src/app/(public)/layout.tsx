@@ -2,15 +2,28 @@ import type { Metadata } from "next";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { getSiteShell } from "@/lib/data/site-shell";
+import { getLocale } from "@/lib/i18n/locale";
+import { buildPageMetadata, getSeoSiteContext } from "@/lib/seo/metadata";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const { settings } = await getSiteShell();
+  const [site, locale] = await Promise.all([getSeoSiteContext(), getLocale()]);
+  const title = site.defaultSeoTitle?.trim() || site.siteName;
+  const description = site.defaultSeoDescription?.trim() || site.siteDescription;
+
+  const meta = buildPageMetadata({
+    title,
+    description,
+    path: "/",
+    site,
+    locale,
+  });
+
   return {
+    ...meta,
     title: {
-      default: settings.siteName,
-      template: `%s | ${settings.siteName}`,
+      default: title,
+      template: `%s | ${site.siteName}`,
     },
-    description: settings.siteDescription ?? undefined,
   };
 }
 

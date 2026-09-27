@@ -10,18 +10,28 @@ import { getCategoryFeed } from "@/lib/queries/articles";
 import { getCategoryBySlug } from "@/lib/queries/categories";
 import { getLocale } from "@/lib/i18n/locale";
 import { t } from "@/lib/i18n/messages";
-import { newsArticlePath } from "@/lib/utils/slug";
+import { categoryPath, newsArticlePath } from "@/lib/utils/slug";
+import { buildPageMetadata, getSeoSiteContext } from "@/lib/seo/metadata";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const category = await getCategoryBySlug(slug);
+  const [category, site, locale] = await Promise.all([
+    getCategoryBySlug(slug),
+    getSeoSiteContext(),
+    getLocale(),
+  ]);
   if (!category) return { title: "Category" };
-  return {
+
+  return buildPageMetadata({
     title: category.name,
-    description: category.description,
-  };
+    description: category.description ?? `${category.name} — ${site.siteName}`,
+    path: categoryPath(category.slug),
+    image: category.image,
+    site,
+    locale,
+  });
 }
 
 export default async function CategoryPage({

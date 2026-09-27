@@ -2,15 +2,21 @@ import { SectionNewsListPage } from "@/components/news/section-news-list-page";
 import { getArticlesPaginated } from "@/lib/queries/articles";
 import { getLocale } from "@/lib/i18n/locale";
 import { t } from "@/lib/i18n/messages";
+import { buildPageMetadata, getSeoSiteContext } from "@/lib/seo/metadata";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata() {
-  const locale = await getLocale();
-  return {
-    title: t("trending", locale),
-    description: "Trending news stories.",
-  };
+  const [site, locale] = await Promise.all([getSeoSiteContext(), getLocale()]);
+  const title = t("trending", locale);
+
+  return buildPageMetadata({
+    title,
+    description: t("trendingPageDesc", locale),
+    path: "/trending",
+    site,
+    locale,
+  });
 }
 
 export default async function TrendingPage({

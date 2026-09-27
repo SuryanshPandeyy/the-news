@@ -3,6 +3,7 @@ import { Geist_Mono, Merriweather, Public_Sans } from "next/font/google";
 import { AppProviders } from "@/components/providers/app-providers";
 import { LocaleProvider } from "@/components/providers/locale-provider";
 import { getLocale } from "@/lib/i18n/locale";
+import { siteMetadataBase } from "@/lib/seo/metadata";
 import "./globals.css";
 
 const publicSans = Public_Sans({
@@ -23,11 +24,17 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: siteMetadataBase(),
   title: {
     default: "Maukhabar",
     template: "%s | Maukhabar",
   },
   description: "Trusted journalism for the modern reader.",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true },
+  },
   appleWebApp: {
     title: "Maukhabar",
   },
