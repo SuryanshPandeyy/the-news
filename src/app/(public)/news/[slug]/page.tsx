@@ -15,9 +15,10 @@ import {
 } from "@/lib/queries/articles";
 import { getSiteUrl } from "@/lib/site";
 import {
+  articleOgImageEndpoint,
   buildPageMetadata,
   getSeoSiteContext,
-  resolveArticleShareImageUrl,
+  resolveArticleShareImage,
   toAbsoluteUrl,
 } from "@/lib/seo/metadata";
 import { getReadingTimeMinutes } from "@/lib/utils/reading-time";
@@ -36,19 +37,16 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   ]);
   if (!article) return { title: "Article" };
 
-  const galleryUrls = (article.images ?? []).map((img) => img.url);
-  const shareImage = resolveArticleShareImageUrl(
-    ...galleryUrls,
-    article.featuredImage,
-    article.bannerImage,
-  );
+  // Same-origin OG endpoint: gallery → featured → banner → /shareimg.jpeg
+  const ogImage = articleOgImageEndpoint(article.slug, article.updatedAt);
+  const shareImage = resolveArticleShareImage(article);
 
   return buildPageMetadata({
     title: article.title,
     description: article.excerpt,
     path: newsArticlePath(article.slug),
     image: shareImage,
-    ogImageOverride: shareImage,
+    ogImageOverride: ogImage,
     site,
     locale,
     type: "article",
@@ -84,11 +82,7 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
         : [];
 
   const site = await getSeoSiteContext();
-  const shareImage = resolveArticleShareImageUrl(
-    ...(article.images ?? []).map((img) => img.url),
-    article.featuredImage,
-    article.bannerImage,
-  );
+  const shareImage = resolveArticleShareImage(article);
 
   const jsonLd = {
     "@context": "https://schema.org",
