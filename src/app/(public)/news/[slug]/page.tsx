@@ -15,7 +15,6 @@ import {
 } from "@/lib/queries/articles";
 import { getSiteUrl } from "@/lib/site";
 import {
-  articleOgImageEndpoint,
   buildPageMetadata,
   getSeoSiteContext,
   resolveArticleShareImage,
@@ -37,8 +36,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   ]);
   if (!article) return { title: "Article" };
 
-  // Same-origin OG endpoint: gallery → featured → banner → /shareimg.jpeg
-  const ogImage = articleOgImageEndpoint(article.slug, article.updatedAt);
+  // Prefer real uploaded image (gallery → featured → banner), else shareimg.jpeg
   const shareImage = resolveArticleShareImage(article);
 
   return buildPageMetadata({
@@ -46,7 +44,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
     description: article.excerpt,
     path: newsArticlePath(article.slug),
     image: shareImage,
-    ogImageOverride: ogImage,
+    ogImageOverride: shareImage,
     site,
     locale,
     type: "article",

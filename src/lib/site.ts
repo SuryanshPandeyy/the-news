@@ -1,14 +1,22 @@
 /** Public origin for share links, sitemap, Open Graph, etc. (no trailing slash). */
 export function getSiteUrl(): string {
   const fromEnv = process.env.NEXT_PUBLIC_SITE_URL?.trim();
-  if (fromEnv) return fromEnv.replace(/\/$/, "");
+  let raw =
+    fromEnv ||
+    (process.env.VERCEL_PROJECT_PRODUCTION_URL
+      ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL.replace(/^https?:\/\//i, "").replace(/\/$/, "")}`
+      : "https://www.maukhabar.in");
 
-  // Prefer production host when deployed (never emit localhost to WhatsApp scrapers).
-  const vercel = process.env.VERCEL_PROJECT_PRODUCTION_URL?.trim();
-  if (vercel) {
-    const host = vercel.replace(/^https?:\/\//i, "").replace(/\/$/, "");
-    return `https://${host}`;
+  raw = raw.replace(/\/$/, "");
+
+  try {
+    const url = new URL(raw);
+    // Production canonical host is www (apex redirects with 308).
+    if (url.hostname === "maukhabar.in") {
+      url.hostname = "www.maukhabar.in";
+    }
+    return url.origin;
+  } catch {
+    return "https://www.maukhabar.in";
   }
-
-  return "https://maukhabar.in";
 }

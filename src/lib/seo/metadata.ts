@@ -25,9 +25,11 @@ export function siteMetadataBase(): URL {
 }
 
 export function toAbsoluteUrl(pathOrUrl: string): string {
-  if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl;
+  const raw = pathOrUrl.trim();
+  if (raw.startsWith("//")) return `https:${raw}`;
+  if (/^https?:\/\//i.test(raw)) return raw;
   const base = getSiteUrl();
-  const path = pathOrUrl.startsWith("/") ? pathOrUrl : `/${pathOrUrl}`;
+  const path = raw.startsWith("/") ? raw : `/${raw}`;
   return `${base}${path}`;
 }
 
@@ -193,6 +195,8 @@ export function buildPageMetadata({
     ? title
     : `${title} | ${site.siteName}`;
 
+  // Prefer the real uploaded image URL in OG/Twitter (Cloudinary/gallery/featured/banner).
+  // Do not invent fixed dimensions — scrapers use the actual file.
   return {
     title,
     description: resolvedDescription,
@@ -210,8 +214,6 @@ export function buildPageMetadata({
           url: ogImage,
           secureUrl: ogImage,
           type: imageType,
-          width: 1200,
-          height: 630,
           alt: title,
         },
       ],
@@ -223,11 +225,6 @@ export function buildPageMetadata({
       title: fullTitle,
       description: resolvedDescription,
       images: [ogImage],
-    },
-    other: {
-      "og:image:width": "1200",
-      "og:image:height": "630",
-      "og:image:type": imageType,
     },
   };
 }
