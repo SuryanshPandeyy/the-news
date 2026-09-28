@@ -36,14 +36,19 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   ]);
   if (!article) return { title: "Article" };
 
-  const heroImage = article.images?.[0]?.url ?? article.featuredImage;
+  const galleryUrls = (article.images ?? []).map((img) => img.url);
+  const shareImage = resolveArticleShareImageUrl(
+    ...galleryUrls,
+    article.featuredImage,
+    article.bannerImage,
+  );
 
   return buildPageMetadata({
     title: article.title,
     description: article.excerpt,
     path: newsArticlePath(article.slug),
-    image: heroImage,
-    ogImageOverride: resolveArticleShareImageUrl(heroImage),
+    image: shareImage,
+    ogImageOverride: shareImage,
     site,
     locale,
     type: "article",
@@ -79,7 +84,11 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
         : [];
 
   const site = await getSeoSiteContext();
-  const shareImage = resolveArticleShareImageUrl(heroImage);
+  const shareImage = resolveArticleShareImageUrl(
+    ...(article.images ?? []).map((img) => img.url),
+    article.featuredImage,
+    article.bannerImage,
+  );
 
   const jsonLd = {
     "@context": "https://schema.org",

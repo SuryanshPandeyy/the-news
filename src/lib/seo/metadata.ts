@@ -39,10 +39,20 @@ export function resolveShareImageUrl(
   return toAbsoluteUrl(DEFAULT_SHARE_IMAGE_PATH);
 }
 
-/** Article shares: story hero only, else shareimg.jpeg (never random placeholders). */
-export function resolveArticleShareImageUrl(heroImage?: string | null): string {
-  const featured = heroImage?.trim();
-  if (featured) return toAbsoluteUrl(featured);
+/**
+ * Article shares — first available wins:
+ * 1. Gallery / story images
+ * 2. Thumbnail (featuredImage)
+ * 3. Banner image
+ * 4. /shareimg.jpeg (never random Unsplash placeholders)
+ */
+export function resolveArticleShareImageUrl(
+  ...candidates: Array<string | null | undefined>
+): string {
+  for (const candidate of candidates) {
+    const url = candidate?.trim();
+    if (url) return toAbsoluteUrl(url);
+  }
   return toAbsoluteUrl(DEFAULT_SHARE_IMAGE_PATH);
 }
 
