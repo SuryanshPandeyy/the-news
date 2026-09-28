@@ -1,0 +1,37 @@
+.article-media-swiper .swiper-pagination-bullet {
+  background: #fff;
+  opacity: 0.55;
+}
+
+.article-media-swiper .swiper-pagination-bullet-active {
+  background: #e71920;
+  opacity: 1;
+}
+
+.article-media-swiper .swiper-button-prev,
+.article-media-swiper .swiper-button-next {
+  color: #fff;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 9999px;
+  background: rgba(0, 0, 0, 0.45);
+}
+
+.article-media-swiper .swiper-button-prev:after,
+.article-media-swiper .swiper-button-next:after {
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+@media (max-width: 640px) {
+  .article-media-swiper .swiper-button-prev,
+  .article-media-swiper .swiper-button-next {
+    width: 1.85rem;
+    height: 1.85rem;
+  }
+
+  .article-media-swiper .swiper-button-prev:after,
+  .article-media-swiper .swiper-button-next:after {
+    font-size: 0.7rem;
+  }
+}

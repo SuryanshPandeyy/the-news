@@ -74,12 +74,20 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   const readingTime = getReadingTimeMinutes(article.content);
   const heroImage = article.images?.[0]?.url ?? article.featuredImage;
 
-  const mediaImages =
-    article.images && article.images.length > 0
-      ? article.images
-      : heroImage
-        ? [{ url: heroImage }]
-        : [];
+  // Unique story images for the Swiper: gallery + featured thumbnail + banner
+  const mediaImages: { url: string }[] = [];
+  const seen = new Set<string>();
+  const pushImage = (url?: string | null) => {
+    const value = url?.trim();
+    if (!value || seen.has(value)) return;
+    seen.add(value);
+    mediaImages.push({ url: value });
+  };
+
+  for (const img of article.images ?? []) pushImage(img.url);
+  pushImage(article.featuredImage);
+  pushImage(heroImage);
+  pushImage(article.bannerImage);
 
   const site = await getSeoSiteContext();
   const shareImage = resolveArticleShareImage(article);

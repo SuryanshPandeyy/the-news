@@ -3,55 +3,19 @@
 import { useCallback, useEffect, useState } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, X, ZoomIn, ZoomOut } from "lucide-react";
+import { Autoplay, Navigation, Pagination, A11y } from "swiper/modules";
+import { Swiper, SwiperSlide } from "swiper/react";
 import { useLocale } from "@/components/providers/locale-provider";
 import { articleImageUrl } from "@/lib/images/placeholders";
 import type { ArticleImageItem } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import "swiper/css";
+import "swiper/css/navigation";
+import "swiper/css/pagination";
+import "./article-page-media.css";
 
 const ZOOM_STEP = 0.25;
 const ZOOM_MIN = 1;
 const ZOOM_MAX = 3;
-
-function MediaThumb({
-  src,
-  alt,
-  seed,
-  priority,
-  sizes,
-  className,
-  onOpen,
-}: {
-  src: string;
-  alt: string;
-  seed: string;
-  priority?: boolean;
-  sizes: string;
-  className?: string;
-  onOpen: () => void;
-}) {
-  const url = articleImageUrl(src, seed);
-
-  return (
-    <button
-      type="button"
-      onClick={onOpen}
-      className={cn(
-        "group relative w-full cursor-zoom-in overflow-hidden bg-gray-100 text-left ring-offset-2 transition-shadow hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-600",
-        className,
-      )}
-      aria-label={alt}
-    >
-      <Image
-        src={url}
-        alt={alt}
-        fill
-        priority={priority}
-        sizes={sizes}
-        className="object-contain transition-transform duration-300 group-hover:scale-[1.02]"
-      />
-    </button>
-  );
-}
 
 export function ArticlePageMedia({
   images,
@@ -65,12 +29,15 @@ export function ArticlePageMedia({
   heroAlt: string;
 }) {
   const { t } = useLocale();
-  const urls = images.map((img) => img.url).filter(Boolean);
+  const urls = Array.from(
+    new Set(images.map((img) => img.url?.trim()).filter(Boolean) as string[]),
+  );
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [zoom, setZoom] = useState(1);
 
   const open = lightboxIndex !== null;
   const currentUrl = open ? urls[lightboxIndex] : null;
+  const multi = urls.length > 1;
 
   const close = useCallback(() => {
     setLightboxIndex(null);
@@ -104,47 +71,59 @@ export function ArticlePageMedia({
 
   if (urls.length === 0) return null;
 
-  const hero = urls[0];
-  const gallery = urls.slice(1);
-
   return (
     <>
-      <figure className="relative mb-10 aspect-[16/9] w-full md:aspect-[2/1]">
-        <MediaThumb
-          src={hero}
-          alt={heroAlt}
-          seed={articleId}
-          priority
-          sizes="(max-width: 896px) 100vw, 896px"
-          className="absolute inset-0 h-full rounded-sm"
-          onOpen={() => setLightboxIndex(0)}
-        />
-      </figure>
+      <div className="article-media-swiper relative mb-10 w-full overflow-hidden rounded-md bg-gray-100">
+        <Swiper
+          modules={[Autoplay, Pagination, Navigation, A11y]}
+          spaceBetween={0}
+          slidesPerView={1}
+          loop={multi}
+          autoplay={
+            multi
+              ? {
+                  delay: 4500,
+                  disableOnInteraction: false,
+                  pauseOnMouseEnter: true,
+                }
+              : false
+          }
+          pagination={multi ? { clickable: true } : false}
+          navigation={multi}
+          className="w-full"
+        >
+          {urls.map((src, index) => {
+            const url = articleImageUrl(src, `${articleId}-slide-${index}`);
+            const alt = index === 0 ? heroAlt : `${title} — ${index + 1}`;
 
-      {gallery.length > 0 && (
-        <div className="mx-auto mb-10 max-w-2xl">
-          <h2 className="mb-4 text-sm font-bold uppercase tracking-wider text-gray-500">
-            {t("gallery")}
-          </h2>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {gallery.map((url, i) => (
-              <figure
-                key={`${url}-${i}`}
-                className="relative aspect-[4/3] w-full overflow-hidden rounded-sm"
-              >
-                <MediaThumb
-                  src={url}
-                  alt={title}
-                  seed={`${articleId}-gallery-${i}`}
-                  sizes="(max-width: 640px) 100vw, 50vw"
-                  className="absolute inset-0 h-full"
-                  onOpen={() => setLightboxIndex(i + 1)}
-                />
-              </figure>
-            ))}
+            return (
+              <SwiperSlide key={`${src}-${index}`}>
+                <button
+                  type="button"
+                  onClick={() => setLightboxIndex(index)}
+                  className="group relative block aspect-[4/3] w-full cursor-zoom-in overflow-hidden bg-gray-100 text-left sm:aspect-[16/10] md:aspect-[2/1]"
+                  aria-label={alt}
+                >
+                  <Image
+                    src={url}
+                    alt={alt}
+                    fill
+                    priority={index === 0}
+                    sizes="(max-width: 640px) 100vw, (max-width: 896px) 100vw, 896px"
+                    className="object-contain transition-transform duration-300 group-hover:scale-[1.02] sm:object-cover"
+                  />
+                </button>
+              </SwiperSlide>
+            );
+          })}
+        </Swiper>
+
+        {multi && (
+          <div className="pointer-events-none absolute bottom-3 right-3 z-10 rounded bg-black/60 px-2 py-1 text-[11px] font-semibold text-white sm:text-xs">
+            {urls.length} {t("gallery")}
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {open && currentUrl && (
         <div
@@ -205,7 +184,7 @@ export function ArticlePageMedia({
             </div>
           </div>
 
-          {urls.length > 1 && (
+          {multi && (
             <>
               <button
                 type="button"
