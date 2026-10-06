@@ -5,7 +5,6 @@ import { LocaleProvider } from "@/components/providers/locale-provider";
 import { getLocale } from "@/lib/i18n/locale";
 import { siteMetadataBase } from "@/lib/seo/metadata";
 import "./globals.css";
-import { Analytics } from "@vercel/analytics/next"
 
 const publicSans = Public_Sans({
   variable: "--font-public-sans",
@@ -55,7 +54,6 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
           <AppProviders>{children}</AppProviders>
         </LocaleProvider>
       </body>
-      <Analytics />
     </html>
   );
 }
